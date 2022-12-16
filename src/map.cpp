@@ -11,6 +11,65 @@ Map* Map::GetInstance()
 
 Map::Map(){}
 
+void Map::ReadCubeData(float cubeSize, Image cubicmap, std::vector<Vector3>& mapVertices, std::vector<Vector3>& mapNormals, std::vector<Vector2>& mapTexcoords)
+{
+    Color* cubicmapPixels = LoadImageColors(cubicmap);
+
+    int mapWidth = cubicmap.width;
+    int mapHeight = cubicmap.height;
+    int maxTriangles = cubicmap.width * cubicmap.height * 12;
+    // Iterating through every cube in the map
+    for (int z = 0; z < mapHeight; z++)
+    {
+        for (int x = 0; x < mapWidth; x++)
+        {
+            // Texture style
+            int texStyle = (int)cubicmapPixels[z * cubicmap.width + x].b;// 4 styles, TODO avoid hardcoding by managing atlas in class
+
+            // Shape switches (props are nested in their relevant case)
+            switch ((int)cubicmapPixels[z * cubicmap.width + x].r) 
+            {
+                case 0:
+                {
+                    //transitable
+                    //drawHorizontalFaces(mapVertices, mapNormals, mapTexcoords, style, cube.size, x, z);
+                    break;
+                }
+                case 128:
+                {
+                    //transitable-blocked. Prop may be applied (nested switch)
+                    switch (cubicmapPixels[z * cubicmap.width + x].g) {
+                        // Special cases, breaks or gotos
+                    case 0:	//none
+                        break;
+                    case 1: // key
+                        Map::PlaceProp(KEY, Vector3{ (float)x, 0, (float)z });
+                        break;
+                    case 2: // rock
+                        Map::PlaceProp(ROCK, Vector3{ (float)x, 0, (float)z });
+                        break;
+                    case 3: // door
+                        Map::PlaceProp(DOOR, Vector3{ (float)x, 0, (float)z });
+                        break;
+                    }
+                    //break;//fallthrough, for horizontal faces
+                }
+                case 255:
+                {
+                    // Wall. Drawing only relevant faces.
+                    //drawVerticalFaces(mapVertices, mapNormals, mapTexcoords, style, cube.size, x, z, cubicmap, cubicmapPixels);
+                    break;
+                }
+            }
+        }
+    }
+}
+
+void Map::PlaceProp(PropType prop, Vector3 position)
+{
+
+}
+
 void Map::Init()
 {
     _imMap = LoadImage("resources/cubicmap.png");      // Load cubicmap image (RAM)
@@ -74,14 +133,6 @@ Mesh Map::GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
     Vector3 n4 = { 0.0f, -1.0f, 0.0f };
     Vector3 n5 = { 0.0f, 0.0f, -1.0f };
     Vector3 n6 = { 0.0f, 0.0f, 1.0f };
-
-    // NOTE: We use texture rectangles to define different textures for top-bottom-front-back-right-left (6)
-    typedef struct RectangleF {
-        float x;
-        float y;
-        float width;
-        float height;
-    } RectangleF;
 
     RectangleF rightTexUV = { 0.0f, 0.0f, 0.5f, 0.5f };
     RectangleF leftTexUV = { 0.5f, 0.0f, 0.5f, 0.5f };
