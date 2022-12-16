@@ -11,7 +11,7 @@ Map* Map::GetInstance()
 
 Map::Map(){}
 
-void Map::ReadCubeData(float cubeSize, Image cubicmap, std::vector<Vector3>& mapVertices, std::vector<Vector3>& mapNormals, std::vector<Vector2>& mapTexcoords)
+void Map::ReadCubeData(float cubeSize, Image cubicmap)
 {
     Color* cubicmapPixels = LoadImageColors(cubicmap);
 
@@ -32,27 +32,27 @@ void Map::ReadCubeData(float cubeSize, Image cubicmap, std::vector<Vector3>& map
                 case 0:
                 {
                     //transitable
-                    //drawHorizontalFaces(mapVertices, mapNormals, mapTexcoords, style, cube.size, x, z);
+                    DrawHorizontal(texStyle, cube.size, x, z);
                     break;
                 }
                 case 128:
                 {
                     //transitable-blocked. Prop may be applied (nested switch)
-                    switch (cubicmapPixels[z * cubicmap.width + x].g) {
+                    switch (cubicmapPixels[z * cubicmap.width + x].g) 
+                    {
                         // Special cases, breaks or gotos
-                    case 0:	//none
-                        break;
-                    case 1: // key
-                        Map::PlaceProp(KEY, Vector3{ (float)x, 0, (float)z });
-                        break;
-                    case 2: // rock
-                        Map::PlaceProp(ROCK, Vector3{ (float)x, 0, (float)z });
-                        break;
-                    case 3: // door
-                        Map::PlaceProp(DOOR, Vector3{ (float)x, 0, (float)z });
-                        break;
+                        case 0:	//none
+                            break;
+                        case 1: // key
+                            Map::PlaceProp(KEY, Vector3{ (float)x, 0, (float)z });
+                            break;
+                        case 2: // rock
+                            Map::PlaceProp(ROCK, Vector3{ (float)x, 0, (float)z });
+                            break;
+                        case 3: // door
+                            Map::PlaceProp(DOOR, Vector3{ (float)x, 0, (float)z });
+                            break;
                     }
-                    //break;//fallthrough, for horizontal faces
                 }
                 case 255:
                 {
@@ -63,6 +63,53 @@ void Map::ReadCubeData(float cubeSize, Image cubicmap, std::vector<Vector3>& map
             }
         }
     }
+}
+
+void Map::DrawHorizontal(int style, float w, int x, int z)
+{
+    // Draw bottom face
+    std::vector<Vector3> bottomVertices;
+    bottomVertices.push_back({ cube.size * (x + cube.left), cube.size * cube.down, cube.size * (z + cube.front) });
+    bottomVertices.push_back({ cube.size * (x + cube.right), cube.size * cube.down, cube.size * (z + cube.front) });
+    bottomVertices.push_back({ cube.size * (x + cube.left), cube.size * cube.down, cube.size * (z + cube.back) });
+    bottomVertices.push_back({ cube.size * (x + cube.left), cube.size * cube.down, cube.size * (z + cube.back) });
+    bottomVertices.push_back({ cube.size * (x + cube.right), cube.size * cube.down, cube.size * (z + cube.front) });
+    bottomVertices.push_back({ cube.size * (x + cube.right), cube.size * cube.down, cube.size * (z + cube.back) });
+
+    // normal 4, bottomTexUV
+    DrawFace(bottomVertices, n4, uv.bottomTexUV, style);
+
+    // Draw top face
+    std::vector<Vector3> topVertices;
+    topVertices.push_back({ cube.size * (x + cube.left), cube.size * cube.up, cube.size * (z + cube.front) });
+    topVertices.push_back({ cube.size * (x + cube.left), cube.size * cube.up, cube.size * (z + cube.back) });
+    topVertices.push_back({ cube.size * (x + cube.right), cube.size * cube.up, cube.size * (z + cube.front) });
+    topVertices.push_back({ cube.size * (x + cube.right), cube.size * cube.up, cube.size * (z + cube.front) });
+    topVertices.push_back({ cube.size * (x + cube.left), cube.size * cube.up, cube.size * (z + cube.front) });
+    topVertices.push_back({ cube.size * (x + cube.right), cube.size * cube.up, cube.size * (z + cube.back) });
+    // normal 3, topTexUV
+    DrawFace(topVertices, n3, uv.topTexUV, style);
+}
+
+void Map::DrawFace(std::vector<Vector3>& vertices, Vector3& normal, RectangleF textureUV, int style)
+{
+    for (Vector3 vertex : vertices) {
+        mapVertices.push_back(vertex);
+    }
+
+    for (int i = 0; i < 6; i++) {
+        mapNormals.push_back(normal);
+    }
+
+    float vertical = textureUV.y + (float)(style % 2) / 2.0f;
+    float horizontal = textureUV.x + (float)(style / 2) / 2.0f;
+
+    mapTexCoords.push_back(Vector2{ horizontal, vertical });
+    mapTexCoords.push_back(Vector2{ horizontal,	vertical + textureUV.height });
+    mapTexCoords.push_back(Vector2{ horizontal + textureUV.width, vertical });
+    mapTexCoords.push_back(Vector2{ horizontal + textureUV.width, vertical });
+    mapTexCoords.push_back(Vector2{ horizontal,	vertical + textureUV.height });
+    mapTexCoords.push_back(Vector2{ horizontal + textureUV.width, vertical + textureUV.height });
 }
 
 void Map::PlaceProp(PropType prop, Vector3 position)
@@ -127,12 +174,6 @@ Mesh Map::GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
     Vector3* mapNormals = (Vector3*)RL_MALLOC(maxTriangles * 3 * sizeof(Vector3));
 
     // Define the 6 normals of the cube, we will combine them accordingly later...
-    Vector3 n1 = { 1.0f, 0.0f, 0.0f };
-    Vector3 n2 = { -1.0f, 0.0f, 0.0f };
-    Vector3 n3 = { 0.0f, 1.0f, 0.0f };
-    Vector3 n4 = { 0.0f, -1.0f, 0.0f };
-    Vector3 n5 = { 0.0f, 0.0f, -1.0f };
-    Vector3 n6 = { 0.0f, 0.0f, 1.0f };
 
     RectangleF rightTexUV = { 0.0f, 0.0f, 0.5f, 0.5f };
     RectangleF leftTexUV = { 0.5f, 0.0f, 0.5f, 0.5f };

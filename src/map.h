@@ -33,6 +33,12 @@ private:
 		RectangleF bottomTexUV = { 0.25f, 0.0f, 0.25f, 0.25f };
 	}sUV;
 
+	Vector3 n1 = { 1.0f, 0.0f, 0.0f };
+	Vector3 n2 = { -1.0f, 0.0f, 0.0f };
+	Vector3 n3 = { 0.0f, 1.0f, 0.0f };
+	Vector3 n4 = { 0.0f, -1.0f, 0.0f };
+	Vector3 n5 = { 0.0f, 0.0f, -1.0f };
+	Vector3 n6 = { 0.0f, 0.0f, 1.0f };
 
 	static Map* _map;
 
@@ -44,12 +50,16 @@ private:
 
 	Vector3 _position;
 	std::vector<Vector3> mapVertices;
+	std::vector<Vector3> mapNormals;
+	std::vector<Vector2> mapTexCoords;
 	sCube cube;
 	sUV uv;
 	enum PropType { NONE, KEY, ROCK, DOOR };
 
 	Map::Map();
-	void Map::ReadCubeData(float cubeSize, Image cubicmap, std::vector<Vector3>& mapVertices, std::vector<Vector3>& mapNormals, std::vector<Vector2>& mapTexcoords);
+	void Map::ReadCubeData(float cubeSize, Image cubicmap);
+	void Map::DrawHorizontal(int style, float w, int x, int z);
+	void Map::DrawFace(std::vector<Vector3>& vertices, Vector3& normal, RectangleF textureUV, int style);
 	void Map::PlaceProp(PropType prop, Vector3 position);
 public:
 	static Map* Map::GetInstance();
