@@ -274,6 +274,7 @@ void Map::Init()
     _texture = LoadTexture("resources/cubemap_atlas_full.png");    // Load map texture
     _model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = _texture;             // Set map diffuse texture
 
+    _pixels = LoadImageColors(_imMap);
     _position = { 0.0f, 0.0f, 0.0f };  // Set model position
 }
 
