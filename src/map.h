@@ -18,6 +18,11 @@ private:
 		float height;
 	} RectangleF;
 
+	typedef struct Prop {
+		Model model;
+		Vector3 position;
+	}Prop;
+
 	static Map* _map;
 
 	Texture2D _texture;
@@ -33,8 +38,10 @@ private:
 	std::vector<Vector3> normals;
 	std::vector<std::map<std::string, RectangleF>> uvs;
 
+	std::vector<Prop> props;
+
 	Vector3 _position;
-	enum PropType { NONE, KEY, ROCK, DOOR };
+	enum PropType { NONE, KEY, CUBE, DOOR };
 
 	Map::Map();
 	void Map::BuildFullCube(Image cubicmap, std::vector<Vector3> vertices, std::map<std::string, RectangleF> uvs, Color* pixels, int& vCounter, int& nCounter, int& tcCounter, int x, int z);

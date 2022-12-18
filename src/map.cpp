@@ -245,12 +245,27 @@ void Map::BuildPartialCube(std::vector<Vector3> vertices, std::map<std::string, 
 
 void Map::PlaceProp(PropType prop, Vector3 position)
 {
+    switch (prop) 
+    {
+        case NONE:
+            break;
+        case KEY:
+            Model castleModel = LoadModel("resources/models/obj/castle.obj");                 // Load model
+            Texture2D textureCastle = LoadTexture("resources/models/obj/castle_diffuse.png"); // Load model texture
+            castleModel.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = textureCastle;            // Set map diffuse texture
+            props.push_back({ castleModel, position });
+            break;
+        case CUBE:
+            break;
+        case DOOR:
+            break;
+    }
 
 }
 
 void Map::Init()
 {
-    _imMap = LoadImage("resources/map2.png");      // Load cubicmap image (RAM)
+    _imMap = LoadImage("resources/map1.png");      // Load cubicmap image (RAM)
     _cubicMap = LoadTextureFromImage(_imMap);       // Convert image to texture to display (VRAM)
 
     Mesh mesh = GenMeshCubicmapV2(_imMap, Vector3{ 1.0f, 1.0f, 1.0f });
@@ -265,6 +280,11 @@ void Map::Init()
 void Map::Draw() 
 {
     DrawModel(_model, _position, 1.0f, WHITE);
+
+    for (Prop p : props) 
+    {
+        DrawModel(p.model, p.position, 0.02f, WHITE);
+    }
 }
 
 void Map::Reset() 
@@ -368,6 +388,18 @@ Mesh Map::GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
             else if(_pixels[z * cubicmap.width + x].r == 128)
             {
                 BuildPartialCube(vertices, uv, vCounter, nCounter, tcCounter);
+                switch(_pixels[z * cubicmap.width + x].g)
+                {
+                    case 0:
+                        break;
+                    case 1:
+                        break;
+                    case 2: // KEY
+                        PlaceProp(KEY, { (float)x, 0, (float)z });
+                        break;
+                    case 3:
+                        break;
+                }
             }
         }
     }
