@@ -49,7 +49,7 @@ void Player::Init()
     map = Map::GetInstance();
     _soundManager = SoundManager::GetInstance();
 
-    _camera.position = Vector3{ 4.0f, 0.5f, 4.0f };  // Camera position
+    _camera.position = Vector3{ 5.0f, 0.5f, 1.0f };  // Camera position
     _camera.target = Vector3{ 0.0f, 1.8f, 0.0f };      // Camera looking at point
     _camera.up = Vector3{ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
     _camera.fovy = 60.0f;                                // Camera field-of-view Y

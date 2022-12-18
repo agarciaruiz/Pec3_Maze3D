@@ -11,106 +11,237 @@ Map* Map::GetInstance()
 
 Map::Map(){}
 
-void Map::ReadCubeData(float cubeSize, Image cubicmap)
-{
-    Color* cubicmapPixels = LoadImageColors(cubicmap);
 
-    int mapWidth = cubicmap.width;
-    int mapHeight = cubicmap.height;
-    int maxTriangles = cubicmap.width * cubicmap.height * 12;
-    // Iterating through every cube in the map
-    for (int z = 0; z < mapHeight; z++)
+void Map::BuildFullCube(Image cubicmap, std::vector<Vector3> vertices, Color* pixels, int& vCounter, int& nCounter, int& tcCounter, int x, int z)
+{
+    // Define triangles and checking collateral cubes
+    //------------------------------------------------
+
+    // Define top triangles (2 tris, 6 vertex --> vertices[0]-vertices[1]-vertices[2], vertices[0]-vertices[2]-vertices[3])
+    // WARNING: Not required for a WHITE cubes, created to allow seeing the map from outside
+    mapVertices[vCounter] = vertices[0];
+    mapVertices[vCounter + 1] = vertices[1];
+    mapVertices[vCounter + 2] = vertices[2];
+    mapVertices[vCounter + 3] = vertices[0];
+    mapVertices[vCounter + 4] = vertices[2];
+    mapVertices[vCounter + 5] = vertices[3];
+    vCounter += 6;
+
+    mapNormals[nCounter] = normals[2];
+    mapNormals[nCounter + 1] = normals[2];
+    mapNormals[nCounter + 2] = normals[2];
+    mapNormals[nCounter + 3] = normals[2];
+    mapNormals[nCounter + 4] = normals[2];
+    mapNormals[nCounter + 5] = normals[2];
+    nCounter += 6;
+
+    mapTexcoords[tcCounter] = Vector2{ uvs["top"].x, uvs["top"].y };
+    mapTexcoords[tcCounter + 1] = Vector2{ uvs["top"].x, uvs["top"].y + uvs["top"].height };
+    mapTexcoords[tcCounter + 2] = Vector2{ uvs["top"].x + uvs["top"].width, uvs["top"].y + uvs["top"].height };
+    mapTexcoords[tcCounter + 3] = Vector2{ uvs["top"].x, uvs["top"].y };
+    mapTexcoords[tcCounter + 4] = Vector2{ uvs["top"].x + uvs["top"].width, uvs["top"].y + uvs["top"].height };
+    mapTexcoords[tcCounter + 5] = Vector2{ uvs["top"].x + uvs["top"].width, uvs["top"].y };
+    tcCounter += 6;
+
+    // Define bottom triangles (2 tris, 6 vertex --> vertices[5]-vertices[7]-vertices[6], vertices[5]-vertices[4]-vertices[7])
+    mapVertices[vCounter] = vertices[5];
+    mapVertices[vCounter + 1] = vertices[7];
+    mapVertices[vCounter + 2] = vertices[6];
+    mapVertices[vCounter + 3] = vertices[5];
+    mapVertices[vCounter + 4] = vertices[4];
+    mapVertices[vCounter + 5] = vertices[7];
+    vCounter += 6;
+
+    mapNormals[nCounter] = normals[3];
+    mapNormals[nCounter + 1] = normals[3];
+    mapNormals[nCounter + 2] = normals[3];
+    mapNormals[nCounter + 3] = normals[3];
+    mapNormals[nCounter + 4] = normals[3];
+    mapNormals[nCounter + 5] = normals[3];
+    nCounter += 6;
+
+    mapTexcoords[tcCounter] = Vector2{ uvs["bottom"].x + uvs["bottom"].width, uvs["bottom"].y };
+    mapTexcoords[tcCounter + 1] = Vector2{ uvs["bottom"].x, uvs["bottom"].y + uvs["bottom"].height };
+    mapTexcoords[tcCounter + 2] = Vector2{ uvs["bottom"].x + uvs["bottom"].width, uvs["bottom"].y + uvs["bottom"].height };
+    mapTexcoords[tcCounter + 3] = Vector2{ uvs["bottom"].x + uvs["bottom"].width, uvs["bottom"].y };
+    mapTexcoords[tcCounter + 4] = Vector2{ uvs["bottom"].x, uvs["bottom"].y };
+    mapTexcoords[tcCounter + 5] = Vector2{ uvs["bottom"].x, uvs["bottom"].y + uvs["bottom"].height };
+    tcCounter += 6;
+
+    // Checking cube on bottom of current cube
+    if (((z < cubicmap.height - 1) && COLOR_EQUAL(_pixels[(z + 1) * cubicmap.width + x], BLACK)) || (z == cubicmap.height - 1))
     {
-        for (int x = 0; x < mapWidth; x++)
-        {
-            // Texture style
-            int texStyle = (int)cubicmapPixels[z * cubicmap.width + x].b;// 4 styles, TODO avoid hardcoding by managing atlas in class
+        // Define front triangles (2 tris, 6 vertex) --> vertices[1] vertices[6] vertices[2], vertices[2] vertices[6] vertices[7]
+        // NOTE: Collateral occluded faces are not generated
+        mapVertices[vCounter] = vertices[1];
+        mapVertices[vCounter + 1] = vertices[6];
+        mapVertices[vCounter + 2] = vertices[2];
+        mapVertices[vCounter + 3] = vertices[2];
+        mapVertices[vCounter + 4] = vertices[6];
+        mapVertices[vCounter + 5] = vertices[7];
+        vCounter += 6;
 
-            // Shape switches (props are nested in their relevant case)
-            switch ((int)cubicmapPixels[z * cubicmap.width + x].r) 
-            {
-                case 0:
-                {
-                    //transitable
-                    DrawHorizontal(texStyle, cube.size, x, z);
-                    break;
-                }
-                case 128:
-                {
-                    //transitable-blocked. Prop may be applied (nested switch)
-                    switch (cubicmapPixels[z * cubicmap.width + x].g) 
-                    {
-                        // Special cases, breaks or gotos
-                        case 0:	//none
-                            break;
-                        case 1: // key
-                            Map::PlaceProp(KEY, Vector3{ (float)x, 0, (float)z });
-                            break;
-                        case 2: // rock
-                            Map::PlaceProp(ROCK, Vector3{ (float)x, 0, (float)z });
-                            break;
-                        case 3: // door
-                            Map::PlaceProp(DOOR, Vector3{ (float)x, 0, (float)z });
-                            break;
-                    }
-                }
-                case 255:
-                {
-                    // Wall. Drawing only relevant faces.
-                    //drawVerticalFaces(mapVertices, mapNormals, mapTexcoords, style, cube.size, x, z, cubicmap, cubicmapPixels);
-                    break;
-                }
-            }
-        }
+        mapNormals[nCounter] = normals[5];
+        mapNormals[nCounter + 1] = normals[5];
+        mapNormals[nCounter + 2] = normals[5];
+        mapNormals[nCounter + 3] = normals[5];
+        mapNormals[nCounter + 4] = normals[5];
+        mapNormals[nCounter + 5] = normals[5];
+        nCounter += 6;
+
+        mapTexcoords[tcCounter] = Vector2{ uvs["front"].x, uvs["front"].y };
+        mapTexcoords[tcCounter + 1] = Vector2{ uvs["front"].x, uvs["front"].y + uvs["front"].height };
+        mapTexcoords[tcCounter + 2] = Vector2{ uvs["front"].x + uvs["front"].width, uvs["front"].y };
+        mapTexcoords[tcCounter + 3] = Vector2{ uvs["front"].x + uvs["front"].width, uvs["front"].y };
+        mapTexcoords[tcCounter + 4] = Vector2{ uvs["front"].x, uvs["front"].y + uvs["front"].height };
+        mapTexcoords[tcCounter + 5] = Vector2{ uvs["front"].x + uvs["front"].width, uvs["front"].y + uvs["front"].height };
+        tcCounter += 6;
+    }
+
+    // Checking cube on top of current cube
+    if (((z > 0) && COLOR_EQUAL(_pixels[(z - 1) * cubicmap.width + x], BLACK)) || (z == 0))
+    {
+        // Define back triangles (2 tris, 6 vertex) --> vertices[0] vertices[4] vertices[5], vertices[0] vertices[3] vertices[4]
+        // NOTE: Collateral occluded faces are not generated
+        mapVertices[vCounter] = vertices[0];
+        mapVertices[vCounter + 1] = vertices[4];
+        mapVertices[vCounter + 2] = vertices[5];
+        mapVertices[vCounter + 3] = vertices[0];
+        mapVertices[vCounter + 4] = vertices[3];
+        mapVertices[vCounter + 5] = vertices[4];
+        vCounter += 6;
+
+        mapNormals[nCounter] = normals[4];
+        mapNormals[nCounter + 1] = normals[4];
+        mapNormals[nCounter + 2] = normals[4];
+        mapNormals[nCounter + 3] = normals[4];
+        mapNormals[nCounter + 4] = normals[4];
+        mapNormals[nCounter + 5] = normals[4];
+        nCounter += 6;
+
+        mapTexcoords[tcCounter] = Vector2{ uvs["back"].x + uvs["back"].width, uvs["back"].y };
+        mapTexcoords[tcCounter + 1] = Vector2{ uvs["back"].x, uvs["back"].y + uvs["back"].height };
+        mapTexcoords[tcCounter + 2] = Vector2{ uvs["back"].x + uvs["back"].width, uvs["back"].y + uvs["back"].height };
+        mapTexcoords[tcCounter + 3] = Vector2{ uvs["back"].x + uvs["back"].width, uvs["back"].y };
+        mapTexcoords[tcCounter + 4] = Vector2{ uvs["back"].x, uvs["back"].y };
+        mapTexcoords[tcCounter + 5] = Vector2{ uvs["back"].x, uvs["back"].y + uvs["back"].height };
+        tcCounter += 6;
+    }
+
+    // Checking cube on right of current cube
+    if (((x < cubicmap.width - 1) && COLOR_EQUAL(_pixels[z * cubicmap.width + (x + 1)], BLACK)) || (x == cubicmap.width - 1))
+    {
+        // Define right triangles (2 tris, 6 vertex) --> vertices[2] vertices[7] vertices[3], vertices[3] vertices[7] vertices[4]
+        // NOTE: Collateral occluded faces are not generated
+        mapVertices[vCounter] = vertices[2];
+        mapVertices[vCounter + 1] = vertices[7];
+        mapVertices[vCounter + 2] = vertices[3];
+        mapVertices[vCounter + 3] = vertices[3];
+        mapVertices[vCounter + 4] = vertices[7];
+        mapVertices[vCounter + 5] = vertices[4];
+        vCounter += 6;
+
+        mapNormals[nCounter] = normals[0];
+        mapNormals[nCounter + 1] = normals[0];
+        mapNormals[nCounter + 2] = normals[0];
+        mapNormals[nCounter + 3] = normals[0];
+        mapNormals[nCounter + 4] = normals[0];
+        mapNormals[nCounter + 5] = normals[0];
+        nCounter += 6;
+
+        mapTexcoords[tcCounter] = Vector2{ uvs["right"].x, uvs["right"].y };
+        mapTexcoords[tcCounter + 1] = Vector2{ uvs["right"].x, uvs["right"].y + uvs["right"].height };
+        mapTexcoords[tcCounter + 2] = Vector2{ uvs["right"].x + uvs["right"].width, uvs["right"].y };
+        mapTexcoords[tcCounter + 3] = Vector2{ uvs["right"].x + uvs["right"].width, uvs["right"].y };
+        mapTexcoords[tcCounter + 4] = Vector2{ uvs["right"].x, uvs["right"].y + uvs["right"].height };
+        mapTexcoords[tcCounter + 5] = Vector2{ uvs["right"].x + uvs["right"].width, uvs["right"].y + uvs["right"].height };
+        tcCounter += 6;
+    }
+
+    // Checking cube on left of current cube
+    if (((x > 0) && COLOR_EQUAL(_pixels[z * cubicmap.width + (x - 1)], BLACK)) || (x == 0))
+    {
+        // Define left triangles (2 tris, 6 vertex) --> vertices[0] vertices[6] vertices[1], vertices[0] vertices[5] vertices[6]
+        // NOTE: Collateral occluded faces are not generated
+        mapVertices[vCounter] = vertices[0];
+        mapVertices[vCounter + 1] = vertices[6];
+        mapVertices[vCounter + 2] = vertices[1];
+        mapVertices[vCounter + 3] = vertices[0];
+        mapVertices[vCounter + 4] = vertices[5];
+        mapVertices[vCounter + 5] = vertices[6];
+        vCounter += 6;
+
+        mapNormals[nCounter] = normals[1];
+        mapNormals[nCounter + 1] = normals[1];
+        mapNormals[nCounter + 2] = normals[1];
+        mapNormals[nCounter + 3] = normals[1];
+        mapNormals[nCounter + 4] = normals[1];
+        mapNormals[nCounter + 5] = normals[1];
+        nCounter += 6;
+
+        mapTexcoords[tcCounter] = Vector2{ uvs["left"].x, uvs["left"].y };
+        mapTexcoords[tcCounter + 1] = Vector2{ uvs["left"].x + uvs["left"].width, uvs["left"].y + uvs["left"].height };
+        mapTexcoords[tcCounter + 2] = Vector2{ uvs["left"].x + uvs["left"].width, uvs["left"].y };
+        mapTexcoords[tcCounter + 3] = Vector2{ uvs["left"].x, uvs["left"].y };
+        mapTexcoords[tcCounter + 4] = Vector2{ uvs["left"].x, uvs["left"].y + uvs["left"].height };
+        mapTexcoords[tcCounter + 5] = Vector2{ uvs["left"].x + uvs["left"].width, uvs["left"].y + uvs["left"].height };
+        tcCounter += 6;
     }
 }
 
-void Map::DrawHorizontal(int style, float w, int x, int z)
+void Map::BuildPartialCube(std::vector<Vector3> vertices, int& vCounter, int& nCounter, int& tcCounter)
 {
-    // Draw bottom face
-    std::vector<Vector3> bottomVertices;
-    bottomVertices.push_back({ cube.size * (x + cube.left), cube.size * cube.down, cube.size * (z + cube.front) });
-    bottomVertices.push_back({ cube.size * (x + cube.right), cube.size * cube.down, cube.size * (z + cube.front) });
-    bottomVertices.push_back({ cube.size * (x + cube.left), cube.size * cube.down, cube.size * (z + cube.back) });
-    bottomVertices.push_back({ cube.size * (x + cube.left), cube.size * cube.down, cube.size * (z + cube.back) });
-    bottomVertices.push_back({ cube.size * (x + cube.right), cube.size * cube.down, cube.size * (z + cube.front) });
-    bottomVertices.push_back({ cube.size * (x + cube.right), cube.size * cube.down, cube.size * (z + cube.back) });
+    // Define top triangles (2 tris, 6 vertex --> vertices[0]-vertices[1]-vertices[2], vertices[0]-vertices[2]-vertices[3])
+    mapVertices[vCounter] = vertices[0];
+    mapVertices[vCounter + 1] = vertices[2];
+    mapVertices[vCounter + 2] = vertices[1];
+    mapVertices[vCounter + 3] = vertices[0];
+    mapVertices[vCounter + 4] = vertices[3];
+    mapVertices[vCounter + 5] = vertices[2];
+    vCounter += 6;
 
-    // normal 4, bottomTexUV
-    DrawFace(bottomVertices, n4, uv.bottomTexUV, style);
+    mapNormals[nCounter] = normals[3];
+    mapNormals[nCounter + 1] = normals[3];
+    mapNormals[nCounter + 2] = normals[3];
+    mapNormals[nCounter + 3] = normals[3];
+    mapNormals[nCounter + 4] = normals[3];
+    mapNormals[nCounter + 5] = normals[3];
+    nCounter += 6;
 
-    // Draw top face
-    std::vector<Vector3> topVertices;
-    topVertices.push_back({ cube.size * (x + cube.left), cube.size * cube.up, cube.size * (z + cube.front) });
-    topVertices.push_back({ cube.size * (x + cube.left), cube.size * cube.up, cube.size * (z + cube.back) });
-    topVertices.push_back({ cube.size * (x + cube.right), cube.size * cube.up, cube.size * (z + cube.front) });
-    topVertices.push_back({ cube.size * (x + cube.right), cube.size * cube.up, cube.size * (z + cube.front) });
-    topVertices.push_back({ cube.size * (x + cube.left), cube.size * cube.up, cube.size * (z + cube.front) });
-    topVertices.push_back({ cube.size * (x + cube.right), cube.size * cube.up, cube.size * (z + cube.back) });
-    // normal 3, topTexUV
-    DrawFace(topVertices, n3, uv.topTexUV, style);
+    mapTexcoords[tcCounter] = Vector2{ uvs["top"].x, uvs["top"].y };
+    mapTexcoords[tcCounter + 1] = Vector2{ uvs["top"].x + uvs["top"].width, uvs["top"].y + uvs["top"].height };
+    mapTexcoords[tcCounter + 2] = Vector2{ uvs["top"].x, uvs["top"].y + uvs["top"].height };
+    mapTexcoords[tcCounter + 3] = Vector2{ uvs["top"].x, uvs["top"].y };
+    mapTexcoords[tcCounter + 4] = Vector2{ uvs["top"].x + uvs["top"].width, uvs["top"].y };
+    mapTexcoords[tcCounter + 5] = Vector2{ uvs["top"].x + uvs["top"].width, uvs["top"].y + uvs["top"].height };
+    tcCounter += 6;
+
+    // Define bottom triangles (2 tris, 6 vertex --> vertices[5]-vertices[7]-vertices[6], vertices[5]-vertices[4]-vertices[7])
+    mapVertices[vCounter] = vertices[5];
+    mapVertices[vCounter + 1] = vertices[6];
+    mapVertices[vCounter + 2] = vertices[7];
+    mapVertices[vCounter + 3] = vertices[5];
+    mapVertices[vCounter + 4] = vertices[7];
+    mapVertices[vCounter + 5] = vertices[4];
+    vCounter += 6;
+
+    mapNormals[nCounter] = normals[2];
+    mapNormals[nCounter + 1] = normals[2];
+    mapNormals[nCounter + 2] = normals[2];
+    mapNormals[nCounter + 3] = normals[2];
+    mapNormals[nCounter + 4] = normals[2];
+    mapNormals[nCounter + 5] = normals[2];
+    nCounter += 6;
+
+    mapTexcoords[tcCounter] = Vector2{ uvs["bottom"].x + uvs["bottom"].width, uvs["bottom"].y };
+    mapTexcoords[tcCounter + 1] = Vector2{ uvs["bottom"].x + uvs["bottom"].width, uvs["bottom"].y + uvs["bottom"].height };
+    mapTexcoords[tcCounter + 2] = Vector2{ uvs["bottom"].x, uvs["bottom"].y + uvs["bottom"].height };
+    mapTexcoords[tcCounter + 3] = Vector2{ uvs["bottom"].x + uvs["bottom"].width, uvs["bottom"].y };
+    mapTexcoords[tcCounter + 4] = Vector2{ uvs["bottom"].x, uvs["bottom"].y + uvs["bottom"].height };
+    mapTexcoords[tcCounter + 5] = Vector2{ uvs["bottom"].x, uvs["bottom"].y };
+    tcCounter += 6;
 }
 
-void Map::DrawFace(std::vector<Vector3>& vertices, Vector3& normal, RectangleF textureUV, int style)
-{
-    for (Vector3 vertex : vertices) {
-        mapVertices.push_back(vertex);
-    }
-
-    for (int i = 0; i < 6; i++) {
-        mapNormals.push_back(normal);
-    }
-
-    float vertical = textureUV.y + (float)(style % 2) / 2.0f;
-    float horizontal = textureUV.x + (float)(style / 2) / 2.0f;
-
-    mapTexCoords.push_back(Vector2{ horizontal, vertical });
-    mapTexCoords.push_back(Vector2{ horizontal,	vertical + textureUV.height });
-    mapTexCoords.push_back(Vector2{ horizontal + textureUV.width, vertical });
-    mapTexCoords.push_back(Vector2{ horizontal + textureUV.width, vertical });
-    mapTexCoords.push_back(Vector2{ horizontal,	vertical + textureUV.height });
-    mapTexCoords.push_back(Vector2{ horizontal + textureUV.width, vertical + textureUV.height });
-}
 
 void Map::PlaceProp(PropType prop, Vector3 position)
 {
@@ -119,7 +250,7 @@ void Map::PlaceProp(PropType prop, Vector3 position)
 
 void Map::Init()
 {
-    _imMap = LoadImage("resources/cubicmap.png");      // Load cubicmap image (RAM)
+    _imMap = LoadImage("resources/map3.png");      // Load cubicmap image (RAM)
     _cubicMap = LoadTextureFromImage(_imMap);       // Convert image to texture to display (VRAM)
 
     Mesh mesh = GenMeshCubicmapV2(_imMap, Vector3{ 1.0f, 1.0f, 1.0f });
@@ -127,8 +258,6 @@ void Map::Init()
 
     _texture = LoadTexture("resources/cubemap_atlas.png");    // Load map texture
     _model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = _texture;             // Set map diffuse texture
-
-    _mapPixels = LoadImageColors(_imMap);
 
     _position = { 0.0f, 0.0f, 0.0f };  // Set model position
 }
@@ -149,11 +278,9 @@ void Map::Reset()
 // NOTE: Vertex data is uploaded to GPU
 Mesh Map::GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
 {
-#define COLOR_EQUAL(col1, col2) ((col1.r == col2.r)&&(col1.g == col2.g)&&(col1.b == col2.b)&&(col1.a == col2.a))
-
     Mesh mesh = { 0 };
 
-    Color* pixels = LoadImageColors(cubicmap);
+    _pixels = LoadImageColors(cubicmap);
 
     int mapWidth = cubicmap.width;
     int mapHeight = cubicmap.height;
@@ -169,262 +296,53 @@ Mesh Map::GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
     float h = cubeSize.z;
     float h2 = cubeSize.y;
 
-    Vector3* mapVertices = (Vector3*)RL_MALLOC(maxTriangles * 3 * sizeof(Vector3));
-    Vector2* mapTexcoords = (Vector2*)RL_MALLOC(maxTriangles * 3 * sizeof(Vector2));
-    Vector3* mapNormals = (Vector3*)RL_MALLOC(maxTriangles * 3 * sizeof(Vector3));
+    mapVertices = (Vector3*)RL_MALLOC(maxTriangles * 3 * sizeof(Vector3));
+    mapTexcoords = (Vector2*)RL_MALLOC(maxTriangles * 3 * sizeof(Vector2));
+    mapNormals = (Vector3*)RL_MALLOC(maxTriangles * 3 * sizeof(Vector3));
 
     // Define the 6 normals of the cube, we will combine them accordingly later...
+    normals.push_back({1.0f, 0.0f, 0.0f});
+    normals.push_back({ -1.0f, 0.0f, 0.0f });
+    normals.push_back({ 0.0f, 1.0f, 0.0f });
+    normals.push_back({ 0.0f, -1.0f, 0.0f });
+    normals.push_back({ 0.0f, 0.0f, -1.0f });
+    normals.push_back({ 0.0f, 0.0f, 1.0f });
 
-    RectangleF rightTexUV = { 0.0f, 0.0f, 0.5f, 0.5f };
-    RectangleF leftTexUV = { 0.5f, 0.0f, 0.5f, 0.5f };
-    RectangleF frontTexUV = { 0.0f, 0.0f, 0.5f, 0.5f };
-    RectangleF backTexUV = { 0.5f, 0.0f, 0.5f, 0.5f };
-    RectangleF topTexUV = { 0.0f, 0.5f, 0.5f, 0.5f };
-    RectangleF bottomTexUV = { 0.5f, 0.5f, 0.5f, 0.5f };
+    uvs.insert({ "right", { 0.0f, 0.0f, 0.5f, 0.5f } });
+    uvs.insert({ "left", { 0.5f, 0.0f, 0.5f, 0.5f } });
+    uvs.insert({ "front", { 0.0f, 0.0f, 0.5f, 0.5f } });
+    uvs.insert({ "back", { 0.5f, 0.0f, 0.5f, 0.5f } });
+    uvs.insert({ "top", { 0.0f, 0.5f, 0.5f, 0.5f } });
+    uvs.insert({ "bottom", { 0.5f, 0.5f, 0.5f, 0.5f } });
 
     for (int z = 0; z < mapHeight; ++z)
     {
         for (int x = 0; x < mapWidth; ++x)
         {
+            std::vector<Vector3> vertices;
             // Define the 8 vertex of the cube, we will combine them accordingly later...
-            Vector3 v1 = { w * (x - 0.5f), h2, h * (z - 0.5f) };
-            Vector3 v2 = { w * (x - 0.5f), h2, h * (z + 0.5f) };
-            Vector3 v3 = { w * (x + 0.5f), h2, h * (z + 0.5f) };
-            Vector3 v4 = { w * (x + 0.5f), h2, h * (z - 0.5f) };
-            Vector3 v5 = { w * (x + 0.5f), 0, h * (z - 0.5f) };
-            Vector3 v6 = { w * (x - 0.5f), 0, h * (z - 0.5f) };
-            Vector3 v7 = { w * (x - 0.5f), 0, h * (z + 0.5f) };
-            Vector3 v8 = { w * (x + 0.5f), 0, h * (z + 0.5f) };
+            vertices.push_back({ w * (x - 0.5f), h2, h * (z - 0.5f) });     // vertices[0]
+            vertices.push_back({ w * (x - 0.5f), h2, h * (z + 0.5f) });     // vertices[1]
+            vertices.push_back({ w * (x + 0.5f), h2, h * (z + 0.5f) });     // vertices[2]
+            vertices.push_back({ w * (x + 0.5f), h2, h * (z - 0.5f) });     // vertices[3]
+            vertices.push_back({ w * (x + 0.5f), 0, h * (z - 0.5f) });      // vertices[4]
+            vertices.push_back({ w * (x - 0.5f), 0, h * (z - 0.5f) });      // vertices[5]
+            vertices.push_back({ w * (x - 0.5f), 0, h * (z + 0.5f) });      // vertices[6]
+            vertices.push_back({ w * (x + 0.5f), 0, h * (z + 0.5f) });      // vertices[7]
 
             // We check pixel color to be WHITE -> draw full cube
-            if (COLOR_EQUAL(pixels[z * cubicmap.width + x], WHITE))
+            if (_pixels[z * cubicmap.width + x].r == 255)
             {
-                // Define triangles and checking collateral cubes
-                //------------------------------------------------
-
-                // Define top triangles (2 tris, 6 vertex --> v1-v2-v3, v1-v3-v4)
-                // WARNING: Not required for a WHITE cubes, created to allow seeing the map from outside
-                mapVertices[vCounter] = v1;
-                mapVertices[vCounter + 1] = v2;
-                mapVertices[vCounter + 2] = v3;
-                mapVertices[vCounter + 3] = v1;
-                mapVertices[vCounter + 4] = v3;
-                mapVertices[vCounter + 5] = v4;
-                vCounter += 6;
-
-                mapNormals[nCounter] = n3;
-                mapNormals[nCounter + 1] = n3;
-                mapNormals[nCounter + 2] = n3;
-                mapNormals[nCounter + 3] = n3;
-                mapNormals[nCounter + 4] = n3;
-                mapNormals[nCounter + 5] = n3;
-                nCounter += 6;
-
-                mapTexcoords[tcCounter] = Vector2{ topTexUV.x, topTexUV.y };
-                mapTexcoords[tcCounter + 1] = Vector2{ topTexUV.x, topTexUV.y + topTexUV.height };
-                mapTexcoords[tcCounter + 2] = Vector2{ topTexUV.x + topTexUV.width, topTexUV.y + topTexUV.height };
-                mapTexcoords[tcCounter + 3] = Vector2{ topTexUV.x, topTexUV.y };
-                mapTexcoords[tcCounter + 4] = Vector2{ topTexUV.x + topTexUV.width, topTexUV.y + topTexUV.height };
-                mapTexcoords[tcCounter + 5] = Vector2{ topTexUV.x + topTexUV.width, topTexUV.y };
-                tcCounter += 6;
-
-                // Define bottom triangles (2 tris, 6 vertex --> v6-v8-v7, v6-v5-v8)
-                mapVertices[vCounter] = v6;
-                mapVertices[vCounter + 1] = v8;
-                mapVertices[vCounter + 2] = v7;
-                mapVertices[vCounter + 3] = v6;
-                mapVertices[vCounter + 4] = v5;
-                mapVertices[vCounter + 5] = v8;
-                vCounter += 6;
-
-                mapNormals[nCounter] = n4;
-                mapNormals[nCounter + 1] = n4;
-                mapNormals[nCounter + 2] = n4;
-                mapNormals[nCounter + 3] = n4;
-                mapNormals[nCounter + 4] = n4;
-                mapNormals[nCounter + 5] = n4;
-                nCounter += 6;
-
-                mapTexcoords[tcCounter] = Vector2{ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y };
-                mapTexcoords[tcCounter + 1] = Vector2{ bottomTexUV.x, bottomTexUV.y + bottomTexUV.height };
-                mapTexcoords[tcCounter + 2] = Vector2{ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y + bottomTexUV.height };
-                mapTexcoords[tcCounter + 3] = Vector2{ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y };
-                mapTexcoords[tcCounter + 4] = Vector2{ bottomTexUV.x, bottomTexUV.y };
-                mapTexcoords[tcCounter + 5] = Vector2{ bottomTexUV.x, bottomTexUV.y + bottomTexUV.height };
-                tcCounter += 6;
-
-                // Checking cube on bottom of current cube
-                if (((z < cubicmap.height - 1) && COLOR_EQUAL(pixels[(z + 1) * cubicmap.width + x], BLACK)) || (z == cubicmap.height - 1))
-                {
-                    // Define front triangles (2 tris, 6 vertex) --> v2 v7 v3, v3 v7 v8
-                    // NOTE: Collateral occluded faces are not generated
-                    mapVertices[vCounter] = v2;
-                    mapVertices[vCounter + 1] = v7;
-                    mapVertices[vCounter + 2] = v3;
-                    mapVertices[vCounter + 3] = v3;
-                    mapVertices[vCounter + 4] = v7;
-                    mapVertices[vCounter + 5] = v8;
-                    vCounter += 6;
-
-                    mapNormals[nCounter] = n6;
-                    mapNormals[nCounter + 1] = n6;
-                    mapNormals[nCounter + 2] = n6;
-                    mapNormals[nCounter + 3] = n6;
-                    mapNormals[nCounter + 4] = n6;
-                    mapNormals[nCounter + 5] = n6;
-                    nCounter += 6;
-
-                    mapTexcoords[tcCounter] = Vector2{ frontTexUV.x, frontTexUV.y };
-                    mapTexcoords[tcCounter + 1] = Vector2{ frontTexUV.x, frontTexUV.y + frontTexUV.height };
-                    mapTexcoords[tcCounter + 2] = Vector2{ frontTexUV.x + frontTexUV.width, frontTexUV.y };
-                    mapTexcoords[tcCounter + 3] = Vector2{ frontTexUV.x + frontTexUV.width, frontTexUV.y };
-                    mapTexcoords[tcCounter + 4] = Vector2{ frontTexUV.x, frontTexUV.y + frontTexUV.height };
-                    mapTexcoords[tcCounter + 5] = Vector2{ frontTexUV.x + frontTexUV.width, frontTexUV.y + frontTexUV.height };
-                    tcCounter += 6;
-                }
-
-                // Checking cube on top of current cube
-                if (((z > 0) && COLOR_EQUAL(pixels[(z - 1) * cubicmap.width + x], BLACK)) || (z == 0))
-                {
-                    // Define back triangles (2 tris, 6 vertex) --> v1 v5 v6, v1 v4 v5
-                    // NOTE: Collateral occluded faces are not generated
-                    mapVertices[vCounter] = v1;
-                    mapVertices[vCounter + 1] = v5;
-                    mapVertices[vCounter + 2] = v6;
-                    mapVertices[vCounter + 3] = v1;
-                    mapVertices[vCounter + 4] = v4;
-                    mapVertices[vCounter + 5] = v5;
-                    vCounter += 6;
-
-                    mapNormals[nCounter] = n5;
-                    mapNormals[nCounter + 1] = n5;
-                    mapNormals[nCounter + 2] = n5;
-                    mapNormals[nCounter + 3] = n5;
-                    mapNormals[nCounter + 4] = n5;
-                    mapNormals[nCounter + 5] = n5;
-                    nCounter += 6;
-
-                    mapTexcoords[tcCounter] = Vector2{ backTexUV.x + backTexUV.width, backTexUV.y };
-                    mapTexcoords[tcCounter + 1] = Vector2{ backTexUV.x, backTexUV.y + backTexUV.height };
-                    mapTexcoords[tcCounter + 2] = Vector2{ backTexUV.x + backTexUV.width, backTexUV.y + backTexUV.height };
-                    mapTexcoords[tcCounter + 3] = Vector2{ backTexUV.x + backTexUV.width, backTexUV.y };
-                    mapTexcoords[tcCounter + 4] = Vector2{ backTexUV.x, backTexUV.y };
-                    mapTexcoords[tcCounter + 5] = Vector2{ backTexUV.x, backTexUV.y + backTexUV.height };
-                    tcCounter += 6;
-                }
-
-                // Checking cube on right of current cube
-                if (((x < cubicmap.width - 1) && COLOR_EQUAL(pixels[z * cubicmap.width + (x + 1)], BLACK)) || (x == cubicmap.width - 1))
-                {
-                    // Define right triangles (2 tris, 6 vertex) --> v3 v8 v4, v4 v8 v5
-                    // NOTE: Collateral occluded faces are not generated
-                    mapVertices[vCounter] = v3;
-                    mapVertices[vCounter + 1] = v8;
-                    mapVertices[vCounter + 2] = v4;
-                    mapVertices[vCounter + 3] = v4;
-                    mapVertices[vCounter + 4] = v8;
-                    mapVertices[vCounter + 5] = v5;
-                    vCounter += 6;
-
-                    mapNormals[nCounter] = n1;
-                    mapNormals[nCounter + 1] = n1;
-                    mapNormals[nCounter + 2] = n1;
-                    mapNormals[nCounter + 3] = n1;
-                    mapNormals[nCounter + 4] = n1;
-                    mapNormals[nCounter + 5] = n1;
-                    nCounter += 6;
-
-                    mapTexcoords[tcCounter] = Vector2{ rightTexUV.x, rightTexUV.y };
-                    mapTexcoords[tcCounter + 1] = Vector2{ rightTexUV.x, rightTexUV.y + rightTexUV.height };
-                    mapTexcoords[tcCounter + 2] = Vector2{ rightTexUV.x + rightTexUV.width, rightTexUV.y };
-                    mapTexcoords[tcCounter + 3] = Vector2{ rightTexUV.x + rightTexUV.width, rightTexUV.y };
-                    mapTexcoords[tcCounter + 4] = Vector2{ rightTexUV.x, rightTexUV.y + rightTexUV.height };
-                    mapTexcoords[tcCounter + 5] = Vector2{ rightTexUV.x + rightTexUV.width, rightTexUV.y + rightTexUV.height };
-                    tcCounter += 6;
-                }
-
-                // Checking cube on left of current cube
-                if (((x > 0) && COLOR_EQUAL(pixels[z * cubicmap.width + (x - 1)], BLACK)) || (x == 0))
-                {
-                    // Define left triangles (2 tris, 6 vertex) --> v1 v7 v2, v1 v6 v7
-                    // NOTE: Collateral occluded faces are not generated
-                    mapVertices[vCounter] = v1;
-                    mapVertices[vCounter + 1] = v7;
-                    mapVertices[vCounter + 2] = v2;
-                    mapVertices[vCounter + 3] = v1;
-                    mapVertices[vCounter + 4] = v6;
-                    mapVertices[vCounter + 5] = v7;
-                    vCounter += 6;
-
-                    mapNormals[nCounter] = n2;
-                    mapNormals[nCounter + 1] = n2;
-                    mapNormals[nCounter + 2] = n2;
-                    mapNormals[nCounter + 3] = n2;
-                    mapNormals[nCounter + 4] = n2;
-                    mapNormals[nCounter + 5] = n2;
-                    nCounter += 6;
-
-                    mapTexcoords[tcCounter] = Vector2{ leftTexUV.x, leftTexUV.y };
-                    mapTexcoords[tcCounter + 1] = Vector2{ leftTexUV.x + leftTexUV.width, leftTexUV.y + leftTexUV.height };
-                    mapTexcoords[tcCounter + 2] = Vector2{ leftTexUV.x + leftTexUV.width, leftTexUV.y };
-                    mapTexcoords[tcCounter + 3] = Vector2{ leftTexUV.x, leftTexUV.y };
-                    mapTexcoords[tcCounter + 4] = Vector2{ leftTexUV.x, leftTexUV.y + leftTexUV.height };
-                    mapTexcoords[tcCounter + 5] = Vector2{ leftTexUV.x + leftTexUV.width, leftTexUV.y + leftTexUV.height };
-                    tcCounter += 6;
-                }
+                BuildFullCube(cubicmap, vertices, _pixels, vCounter, nCounter, tcCounter, x, z);
             }
             // We check pixel color to be BLACK, we will only draw floor and roof
-            else if (COLOR_EQUAL(pixels[z * cubicmap.width + x], BLACK))
+            else if (_pixels[z * cubicmap.width + x].r == 0)
             {
-                // Define top triangles (2 tris, 6 vertex --> v1-v2-v3, v1-v3-v4)
-                mapVertices[vCounter] = v1;
-                mapVertices[vCounter + 1] = v3;
-                mapVertices[vCounter + 2] = v2;
-                mapVertices[vCounter + 3] = v1;
-                mapVertices[vCounter + 4] = v4;
-                mapVertices[vCounter + 5] = v3;
-                vCounter += 6;
-
-                mapNormals[nCounter] = n4;
-                mapNormals[nCounter + 1] = n4;
-                mapNormals[nCounter + 2] = n4;
-                mapNormals[nCounter + 3] = n4;
-                mapNormals[nCounter + 4] = n4;
-                mapNormals[nCounter + 5] = n4;
-                nCounter += 6;
-
-                mapTexcoords[tcCounter] = Vector2{ topTexUV.x, topTexUV.y };
-                mapTexcoords[tcCounter + 1] = Vector2{ topTexUV.x + topTexUV.width, topTexUV.y + topTexUV.height };
-                mapTexcoords[tcCounter + 2] = Vector2{ topTexUV.x, topTexUV.y + topTexUV.height };
-                mapTexcoords[tcCounter + 3] = Vector2{ topTexUV.x, topTexUV.y };
-                mapTexcoords[tcCounter + 4] = Vector2{ topTexUV.x + topTexUV.width, topTexUV.y };
-                mapTexcoords[tcCounter + 5] = Vector2{ topTexUV.x + topTexUV.width, topTexUV.y + topTexUV.height };
-                tcCounter += 6;
-
-                // Define bottom triangles (2 tris, 6 vertex --> v6-v8-v7, v6-v5-v8)
-                mapVertices[vCounter] = v6;
-                mapVertices[vCounter + 1] = v7;
-                mapVertices[vCounter + 2] = v8;
-                mapVertices[vCounter + 3] = v6;
-                mapVertices[vCounter + 4] = v8;
-                mapVertices[vCounter + 5] = v5;
-                vCounter += 6;
-
-                mapNormals[nCounter] = n3;
-                mapNormals[nCounter + 1] = n3;
-                mapNormals[nCounter + 2] = n3;
-                mapNormals[nCounter + 3] = n3;
-                mapNormals[nCounter + 4] = n3;
-                mapNormals[nCounter + 5] = n3;
-                nCounter += 6;
-
-                mapTexcoords[tcCounter] = Vector2{ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y };
-                mapTexcoords[tcCounter + 1] = Vector2{ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y + bottomTexUV.height };
-                mapTexcoords[tcCounter + 2] = Vector2{ bottomTexUV.x, bottomTexUV.y + bottomTexUV.height };
-                mapTexcoords[tcCounter + 3] = Vector2{ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y };
-                mapTexcoords[tcCounter + 4] = Vector2{ bottomTexUV.x, bottomTexUV.y + bottomTexUV.height };
-                mapTexcoords[tcCounter + 5] = Vector2{ bottomTexUV.x, bottomTexUV.y };
-                tcCounter += 6;
+                BuildPartialCube(vertices, vCounter, nCounter, tcCounter);
+            }
+            else if(_pixels[z * cubicmap.width + x].r == 128)
+            {
+                BuildPartialCube(vertices, vCounter, nCounter, tcCounter);
             }
         }
     }
@@ -474,7 +392,7 @@ Mesh Map::GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
     RL_FREE(mapNormals);
     RL_FREE(mapTexcoords);
 
-    UnloadImageColors(pixels);   // Unload pixels color data
+    UnloadImageColors(_pixels);   // Unload pixels color data
 
     // Upload vertex data to GPU (static mesh)
     UploadMesh(&mesh, false);
