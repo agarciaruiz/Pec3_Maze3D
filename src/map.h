@@ -31,14 +31,14 @@ private:
 	Vector2* mapTexcoords;
 
 	std::vector<Vector3> normals;
-	std::map<std::string, RectangleF> uvs;
+	std::vector<std::map<std::string, RectangleF>> uvs;
 
 	Vector3 _position;
 	enum PropType { NONE, KEY, ROCK, DOOR };
 
 	Map::Map();
-	void Map::BuildFullCube(Image cubicmap, std::vector<Vector3> vertices, Color* pixels, int& vCounter, int& nCounter, int& tcCounter, int x, int z);
-	void Map::BuildPartialCube(std::vector<Vector3> vertices, int& vCounter, int& nCounter, int& tcCounter);
+	void Map::BuildFullCube(Image cubicmap, std::vector<Vector3> vertices, std::map<std::string, RectangleF> uvs, Color* pixels, int& vCounter, int& nCounter, int& tcCounter, int x, int z);
+	void Map::BuildPartialCube(std::vector<Vector3> vertices, std::map<std::string, RectangleF> uvs, int& vCounter, int& nCounter, int& tcCounter);
 	void Map::PlaceProp(PropType prop, Vector3 position);
 public:
 	static Map* Map::GetInstance();

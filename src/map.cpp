@@ -12,7 +12,7 @@ Map* Map::GetInstance()
 Map::Map(){}
 
 
-void Map::BuildFullCube(Image cubicmap, std::vector<Vector3> vertices, Color* pixels, int& vCounter, int& nCounter, int& tcCounter, int x, int z)
+void Map::BuildFullCube(Image cubicmap, std::vector<Vector3> vertices, std::map<std::string, RectangleF> uvs, Color* pixels, int& vCounter, int& nCounter, int& tcCounter, int x, int z)
 {
     // Define triangles and checking collateral cubes
     //------------------------------------------------
@@ -189,7 +189,7 @@ void Map::BuildFullCube(Image cubicmap, std::vector<Vector3> vertices, Color* pi
     }
 }
 
-void Map::BuildPartialCube(std::vector<Vector3> vertices, int& vCounter, int& nCounter, int& tcCounter)
+void Map::BuildPartialCube(std::vector<Vector3> vertices, std::map<std::string, RectangleF> uvs, int& vCounter, int& nCounter, int& tcCounter)
 {
     // Define top triangles (2 tris, 6 vertex --> vertices[0]-vertices[1]-vertices[2], vertices[0]-vertices[2]-vertices[3])
     mapVertices[vCounter] = vertices[0];
@@ -250,13 +250,13 @@ void Map::PlaceProp(PropType prop, Vector3 position)
 
 void Map::Init()
 {
-    _imMap = LoadImage("resources/map3.png");      // Load cubicmap image (RAM)
+    _imMap = LoadImage("resources/map2.png");      // Load cubicmap image (RAM)
     _cubicMap = LoadTextureFromImage(_imMap);       // Convert image to texture to display (VRAM)
 
     Mesh mesh = GenMeshCubicmapV2(_imMap, Vector3{ 1.0f, 1.0f, 1.0f });
     _model = LoadModelFromMesh(mesh);
 
-    _texture = LoadTexture("resources/cubemap_atlas.png");    // Load map texture
+    _texture = LoadTexture("resources/cubemap_atlas_full.png");    // Load map texture
     _model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = _texture;             // Set map diffuse texture
 
     _position = { 0.0f, 0.0f, 0.0f };  // Set model position
@@ -308,12 +308,20 @@ Mesh Map::GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
     normals.push_back({ 0.0f, 0.0f, -1.0f });
     normals.push_back({ 0.0f, 0.0f, 1.0f });
 
-    uvs.insert({ "right", { 0.0f, 0.0f, 0.5f, 0.5f } });
-    uvs.insert({ "left", { 0.5f, 0.0f, 0.5f, 0.5f } });
-    uvs.insert({ "front", { 0.0f, 0.0f, 0.5f, 0.5f } });
-    uvs.insert({ "back", { 0.5f, 0.0f, 0.5f, 0.5f } });
-    uvs.insert({ "top", { 0.0f, 0.5f, 0.5f, 0.5f } });
-    uvs.insert({ "bottom", { 0.5f, 0.5f, 0.5f, 0.5f } });
+    for (int i = 0; i < 2; i++) 
+    {
+        for (int j = 0; j < 2; j++) 
+        {
+            std::map<std::string, RectangleF> uv;
+            uv.insert({ "right", {j * 0.5f, i * 0.5f, 0.25f, 0.25f} });
+            uv.insert({ "left", {0.25f + j * 0.5f, i * 0.5f, 0.25f, 0.25f} });
+            uv.insert({ "front", {j * 0.5f, i * 0.5f, 0.25f, 0.25f} });
+            uv.insert({ "back", {0.25f + j * 0.5f, i * 0.5f, 0.25f, 0.25f} });
+            uv.insert({ "top", {j * 0.5f, 0.25f + i * 0.5f, 0.25f, 0.25f} });
+            uv.insert({ "bottom", {0.25f + j * 0.5f, 0.25f + i * 0.5f, 0.25f, 0.25f} });
+            uvs.push_back(uv);
+        }
+    }
 
     for (int z = 0; z < mapHeight; ++z)
     {
@@ -330,19 +338,36 @@ Mesh Map::GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
             vertices.push_back({ w * (x - 0.5f), 0, h * (z + 0.5f) });      // vertices[6]
             vertices.push_back({ w * (x + 0.5f), 0, h * (z + 0.5f) });      // vertices[7]
 
+            std::map<std::string, RectangleF> uv;
+            switch (_pixels[z * cubicmap.width + x].b)
+            {
+                case 0:
+                    uv = uvs[0];
+                    break;
+                case 1:
+                    uv = uvs[1];
+                    break;
+                case 2:
+                    uv = uvs[2];
+                    break;
+                case 3:
+                    uv = uvs[3];
+                    break;
+            }
+
             // We check pixel color to be WHITE -> draw full cube
             if (_pixels[z * cubicmap.width + x].r == 255)
             {
-                BuildFullCube(cubicmap, vertices, _pixels, vCounter, nCounter, tcCounter, x, z);
+                BuildFullCube(cubicmap, vertices, uv, _pixels, vCounter, nCounter, tcCounter, x, z);
             }
             // We check pixel color to be BLACK, we will only draw floor and roof
             else if (_pixels[z * cubicmap.width + x].r == 0)
             {
-                BuildPartialCube(vertices, vCounter, nCounter, tcCounter);
+                BuildPartialCube(vertices, uv, vCounter, nCounter, tcCounter);
             }
             else if(_pixels[z * cubicmap.width + x].r == 128)
             {
-                BuildPartialCube(vertices, vCounter, nCounter, tcCounter);
+                BuildPartialCube(vertices, uv, vCounter, nCounter, tcCounter);
             }
         }
     }
