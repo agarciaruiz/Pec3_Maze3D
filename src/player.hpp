@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "raylib.h"
+#include "global.h"
 #include "screen.hpp"
 #include "sound_manager.h"
 #include "map.h"
@@ -27,6 +28,7 @@ private:
     Player::Player();
     void Player::Move();
     void Player::CheckCollisions(Vector3 oldCamPos);
+    void Player::CheckCollisionsWithProps();
 
 public:
 

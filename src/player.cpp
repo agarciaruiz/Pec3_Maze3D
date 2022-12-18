@@ -13,7 +13,43 @@ void Player::Move()
 
 void Player::CheckCollisions(Vector3 oldCamPos) 
 {
+    _position = { _camera.position.x, _camera.position.z };
+    _tile = Vector2{ _position.x - map->Position().x + 0.5f, _position.y - map->Position().z + 0.5f };
 
+    if ((int)_tile.x < 0) _tile.x = 0;
+    else if ((int)_tile.x >= map->MapImg().width) _tile.x = map->MapImg().width - 1;
+
+    if ((int)_tile.y < 0) _tile.y = 0;
+    else if ((int)_tile.y >= map->MapImg().height) _tile.y = map->MapImg().height - 1;
+
+    for (int y = 0; y < map->CubicMap().height; y++)
+    {
+        for (int x = 0; x < map->CubicMap().width; x++)
+        {
+            if ((map->MapPixels()[y * map->CubicMap().width + x].r == 255) &&       // Collision: white pixel, only check R channel
+                (CheckCollisionCircleRec(_position, _radius, Rectangle{ map->Position().x - 0.5f + x, map->Position().z - 0.5f + y, 1.0f, 1.0f })))
+            {
+                // Collision detected, reset camera position
+                _camera.position = oldCamPos;
+            }
+        }
+    }
+}
+
+void Player::CheckCollisionsWithProps() 
+{
+    for(Prop* p : map->Props())
+    {
+        if(!p->isEmpty && CheckCollisionCircleRec(_position, _radius, Rectangle{ p->position.x, p->position.z, 1.0f, 1.0f }))
+        {
+            if (p->type == KEY) 
+            {
+                printf("Collision!");
+                p->model.materials[0].maps[MATERIAL_MAP_DIFFUSE].color.a = 0;
+                p->isEmpty = true;
+            }
+        }
+    }
 }
 
 // PUBLIC METHODS
@@ -48,28 +84,8 @@ void Player::Update()
 {
     Vector3 oldCamPos = _camera.position;
     UpdateCamera(&_camera);
-    //CheckCollisions(oldCamPos);
-    _position = { _camera.position.x, _camera.position.z };
-    _tile = Vector2{ _position.x - map->Position().x + 0.5f, _position.y - map->Position().z + 0.5f };
-
-    if ((int)_tile.x < 0) _tile.x = 0;
-    else if ((int)_tile.x >= map->MapImg().width) _tile.x = map->MapImg().width - 1;
-
-    if ((int)_tile.y < 0) _tile.y = 0;
-    else if ((int)_tile.y >= map->MapImg().height) _tile.y = map->MapImg().height - 1;
-
-    for (int y = 0; y < map->CubicMap().height; y++)
-    {
-        for (int x = 0; x < map->CubicMap().width; x++)
-        {
-            if ((map->MapPixels()[y * map->CubicMap().width + x].r == 255) &&       // Collision: white pixel, only check R channel
-                (CheckCollisionCircleRec(_position, _radius, Rectangle{ map->Position().x - 0.5f + x, map->Position().z - 0.5f + y, 1.0f, 1.0f })))
-            {
-                // Collision detected, reset camera position
-                _camera.position = oldCamPos;
-            }
-        }
-    }
+    CheckCollisions(oldCamPos);
+    CheckCollisionsWithProps();
 }
 
 void Player::Draw()

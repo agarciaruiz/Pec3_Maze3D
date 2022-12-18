@@ -245,22 +245,45 @@ void Map::BuildPartialCube(std::vector<Vector3> vertices, std::map<std::string, 
 
 void Map::PlaceProp(PropType prop, Vector3 position)
 {
+    Prop* p = new Prop();
     switch (prop) 
     {
-        case NONE:
+        case VOID:
             break;
         case KEY:
-            Model castleModel = LoadModel("resources/models/obj/castle.obj");                 // Load model
-            Texture2D textureCastle = LoadTexture("resources/models/obj/castle_diffuse.png"); // Load model texture
-            castleModel.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = textureCastle;            // Set map diffuse texture
-            props.push_back({ castleModel, position });
+            p->model = LoadModel("resources/models/obj/cube.obj");                 // Load model
+            Texture2D keyTexture = LoadTexture("resources/models/obj/cube_diffuse.png"); // Load model texture
+            p->model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = keyTexture;            // Set map diffuse texture
+            p->bb = GetMeshBoundingBox(p->model.meshes[0]);   // Set model bounds
+            p->position = position;
+            p->isEmpty = false;
+            p->size = 0.02f;
+            p->type = KEY;
+            props.push_back(p);
             break;
-        case CUBE:
+        case TURRET:
+            p->model = LoadModel("resources/models/obj/turret.obj");                 // Load model
+            Texture2D turretTexture = LoadTexture("resources/models/obj/turret_diffuse.png"); // Load model texture
+            p->model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = turretTexture;            // Set map diffuse texture
+            p->bb = GetMeshBoundingBox(p->model.meshes[0]);   // Set model bounds
+            p->position = position;
+            p->isEmpty = false;
+            p->size = 0.02f;
+            p->type = TURRET;
+            props.push_back(p);
             break;
-        case DOOR:
+        case BRIDGE:
+            p->model = LoadModel("resources/models/obj/bridge.obj");                 // Load model
+            Texture2D bridgeTexture = LoadTexture("resources/models/obj/bridge_diffuse.png"); // Load model texture
+            p->model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = bridgeTexture;            // Set map diffuse texture
+            p->bb = GetMeshBoundingBox(p->model.meshes[0]);   // Set model bounds
+            p->position = position;
+            p->isEmpty = false;
+            p->size = 0.1;
+            p->type = BRIDGE;
+            props.push_back(p);
             break;
     }
-
 }
 
 void Map::Init()
@@ -274,7 +297,6 @@ void Map::Init()
     _texture = LoadTexture("resources/cubemap_atlas_full.png");    // Load map texture
     _model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = _texture;             // Set map diffuse texture
 
-    _pixels = LoadImageColors(_imMap);
     _position = { 0.0f, 0.0f, 0.0f };  // Set model position
 }
 
@@ -282,9 +304,10 @@ void Map::Draw()
 {
     DrawModel(_model, _position, 1.0f, WHITE);
 
-    for (Prop p : props) 
+    for (Prop* p : props) 
     {
-        DrawModel(p.model, p.position, 0.02f, WHITE);
+        if(!p->isEmpty)
+            DrawModel(p->model, p->position, p->size, WHITE);
     }
 }
 
@@ -393,12 +416,14 @@ Mesh Map::GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
                 {
                     case 0:
                         break;
-                    case 1:
+                    case 1: // TURRET
+                        PlaceProp(TURRET, { (float)x, 0, (float)z });
                         break;
                     case 2: // KEY
                         PlaceProp(KEY, { (float)x, 0, (float)z });
                         break;
-                    case 3:
+                    case 3: // BRIDGE
+                        PlaceProp(BRIDGE, { (float)x, 0, (float)z });
                         break;
                 }
             }
@@ -449,8 +474,6 @@ Mesh Map::GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
     RL_FREE(mapVertices);
     RL_FREE(mapNormals);
     RL_FREE(mapTexcoords);
-
-    UnloadImageColors(_pixels);   // Unload pixels color data
 
     // Upload vertex data to GPU (static mesh)
     UploadMesh(&mesh, false);

@@ -3,6 +3,7 @@
 #define COLOR_EQUAL(col1, col2) ((col1.r == col2.r)&&(col1.g == col2.g)&&(col1.b == col2.b)&&(col1.a == col2.a))
 
 #include "raylib.h"
+#include "global.h"
 #include <stdlib.h>
 #include <vector>
 #include <map>
@@ -17,11 +18,6 @@ private:
 		float width;
 		float height;
 	} RectangleF;
-
-	typedef struct Prop {
-		Model model;
-		Vector3 position;
-	}Prop;
 
 	static Map* _map;
 
@@ -38,10 +34,9 @@ private:
 	std::vector<Vector3> normals;
 	std::vector<std::map<std::string, RectangleF>> uvs;
 
-	std::vector<Prop> props;
+	std::vector<Prop*> props;
 
 	Vector3 _position;
-	enum PropType { NONE, KEY, CUBE, DOOR };
 
 	Map::Map();
 	void Map::BuildFullCube(Image cubicmap, std::vector<Vector3> vertices, std::map<std::string, RectangleF> uvs, Color* pixels, int& vCounter, int& nCounter, int& tcCounter, int x, int z);
@@ -54,6 +49,7 @@ public:
 	Image MapImg() const { return _imMap; }
 	Texture2D CubicMap() const { return _cubicMap; }
 	Color* MapPixels() const { return _pixels; }
+	std::vector<Prop*> Props() const { return props; }
 	void Map::Init();
 	void Map::Draw();
 	void Map::Reset();
