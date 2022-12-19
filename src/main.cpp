@@ -43,6 +43,7 @@ int main(void)
         case OPTIONS: optionsScreen.Unload(); break;
         case GAMEPLAY: gameScreen.Unload(); break;
         case ENDING: endingScreen.Unload(); break;
+        case LOADING: loadingScreen.Unload(); break;
         default: break;
     }
 
@@ -68,6 +69,7 @@ static void ChangeToScreen(Screens screen)
         case OPTIONS: optionsScreen.Unload(); break;
         case GAMEPLAY: gameScreen.Unload(); break;
         case ENDING: endingScreen.Unload(); break;
+        case LOADING: loadingScreen.Unload(); break;
         default: break;
     }
 
@@ -79,6 +81,7 @@ static void ChangeToScreen(Screens screen)
         case OPTIONS: optionsScreen.Init(); break;
         case GAMEPLAY: gameScreen.Init(); break;
         case ENDING: endingScreen.Init(); break;
+        case LOADING: loadingScreen.Init(); break;
         default: break;
     }
 
@@ -116,6 +119,7 @@ static void UpdateTransition(void)
                 case OPTIONS: optionsScreen.Unload(); break;
                 case GAMEPLAY: gameScreen.Unload(); break;
                 case ENDING: endingScreen.Unload(); break;
+                case LOADING: loadingScreen.Unload(); break;
                 default: break;
             }
 
@@ -127,6 +131,7 @@ static void UpdateTransition(void)
                 case OPTIONS: optionsScreen.Init(); break;
                 case GAMEPLAY: gameScreen.Init(); break;
                 case ENDING: endingScreen.Init(); break;
+                case LOADING: loadingScreen.Init(); break;
                 default: break;
             }
 
@@ -204,6 +209,12 @@ static void UpdateDrawFrame()
                 else if (endingScreen.FinishScreen() == 3) TransitionToScreen(OPTIONS);
 
             } break;
+            case LOADING:
+            {
+                loadingScreen.Update();
+                if (loadingScreen.FinishScreen() == 4) TransitionToScreen(GAMEPLAY);
+
+            }break;
             default: break;
         }
     }
@@ -223,6 +234,7 @@ static void UpdateDrawFrame()
             case OPTIONS: optionsScreen.Draw(); break;
             case GAMEPLAY: gameScreen.Draw(); break;
             case ENDING: endingScreen.Draw(); break;
+            case LOADING: loadingScreen.Draw(); break;
             default: break;
         }
 

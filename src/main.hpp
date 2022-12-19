@@ -6,6 +6,7 @@
 #include "game_screen.hpp"
 #include "ending_screen.hpp"
 #include "options_screen.hpp"
+#include "loading_screen.h"
 #include "raylib.h"
 
 //----------------------------------------------------------------------------------
@@ -19,6 +20,7 @@ TitleScreen titleScreen;
 GameScreen gameScreen;
 EndingScreen endingScreen;
 OptionsScreen optionsScreen;
+LoadingScreen loadingScreen;
 
 // Required variables to manage screen transitions (fade-in, fade-out)
 float transAlpha;

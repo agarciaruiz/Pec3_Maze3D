@@ -4,7 +4,7 @@
 #define SCR_WIDTH 1020
 #define SCR_HEIGHT 800
 
-enum Screens { NONE, LOGO, TITLE, OPTIONS, GAMEPLAY, ENDING };
+enum Screens { NONE, LOGO, TITLE, OPTIONS, GAMEPLAY, ENDING, LOADING };
 enum PropType { VOID, KEY, TURRET, BRIDGE };
 
 typedef struct Prop {
