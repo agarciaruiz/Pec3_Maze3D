@@ -25,6 +25,8 @@ private:
 	// Private methods
 	void GameManager::DrawUI();
 
+	int currentLevel;
+
 public:
 
 	static GameManager* GameManager::GetInstance();

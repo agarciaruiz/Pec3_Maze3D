@@ -3,7 +3,8 @@
 GameManager* GameManager::_gameManager = NULL;
 
 
-GameManager::GameManager() {}
+GameManager::GameManager() : currentLevel{0}
+{}
 
 GameManager* GameManager::GetInstance()
 {
@@ -17,7 +18,20 @@ void GameManager::Init()
 	gamePaused = false;
 
 	_mapLoader = MapLoader::GetInstance();
-	_mapLoader->LoadMap("resources/map1.png", "resources/cubemap_atlas_full.png");
+
+	currentLevel++;
+	switch (currentLevel) 
+	{
+	case 1:
+		_mapLoader->LoadMap("resources/map1.png", "resources/cubemap_atlas_full.png");
+		break;
+	case 2:
+		_mapLoader->LoadMap("resources/map2.png", "resources/cubemap_atlas_full.png");
+		break;
+	case 3: 
+		_mapLoader->LoadMap("resources/map3.png", "resources/cubemap_atlas_full.png");
+		break;
+	}
 
 	_player = Player::GetInstance();
 	_player->Init();

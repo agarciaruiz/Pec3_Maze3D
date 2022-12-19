@@ -173,6 +173,7 @@
     <ClCompile Include="src\ending_screen.cpp" />
     <ClCompile Include="src\game_manager.cpp" />
     <ClCompile Include="src\game_screen.cpp" />
+    <ClCompile Include="src\loading_screen.cpp" />
     <ClCompile Include="src\logo_screen.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\map.cpp" />
@@ -188,6 +189,7 @@
     <ClInclude Include="src\game_manager.h" />
     <ClInclude Include="src\game_screen.hpp" />
     <ClInclude Include="src\global.h" />
+    <ClInclude Include="src\loading_screen.h" />
     <ClInclude Include="src\logo_screen.hpp" />
     <ClInclude Include="src\main.hpp" />
     <ClInclude Include="src\map.h" />

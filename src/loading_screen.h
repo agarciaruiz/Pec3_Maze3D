@@ -5,6 +5,8 @@
 class LoadingScreen : public Screen 
 {
 private:
+	Vector2 textPos;
+
 public:
 	void LoadingScreen::Init() override;
 	void LoadingScreen::Update() override;
