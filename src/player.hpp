@@ -6,13 +6,13 @@
 #include "global.h"
 #include "screen.hpp"
 #include "sound_manager.h"
-#include "map.h"
+#include "map_loader.h"
 
 class Player {
 private:
     static Player* _player;
 
-    Map* map;
+    MapLoader* mapLoader;
 
     Camera3D _camera;
 
@@ -22,13 +22,14 @@ private:
     float _radius;
     float _moveSpeed;
     bool _isDead;
+    bool _hasKey;
 
     SoundManager* _soundManager;
 
     Player::Player();
     void Player::Move();
     void Player::CheckCollisions(Vector3 oldCamPos);
-    void Player::CheckCollisionsWithProps();
+    void Player::CheckCollisionsWithProps(Vector3 oldCamPos);
 
 public:
 

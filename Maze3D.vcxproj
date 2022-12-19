@@ -176,6 +176,7 @@
     <ClCompile Include="src\logo_screen.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\map.cpp" />
+    <ClCompile Include="src\map_loader.cpp" />
     <ClCompile Include="src\options_screen.cpp" />
     <ClCompile Include="src\player.cpp" />
     <ClCompile Include="src\screen.cpp" />
@@ -190,6 +191,7 @@
     <ClInclude Include="src\logo_screen.hpp" />
     <ClInclude Include="src\main.hpp" />
     <ClInclude Include="src\map.h" />
+    <ClInclude Include="src\map_loader.h" />
     <ClInclude Include="src\options_screen.hpp" />
     <ClInclude Include="src\player.hpp" />
     <ClInclude Include="src\pool.h" />

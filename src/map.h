@@ -19,8 +19,6 @@ private:
 		float height;
 	} RectangleF;
 
-	static Map* _map;
-
 	Texture2D _texture;
 	Texture2D _cubicMap;
 	Image _imMap;
@@ -37,20 +35,20 @@ private:
 	std::vector<Prop*> props;
 
 	Vector3 _position;
+	bool _completed;
 
-	Map::Map();
 	void Map::BuildFullCube(Image cubicmap, std::vector<Vector3> vertices, std::map<std::string, RectangleF> uvs, Color* pixels, int& vCounter, int& nCounter, int& tcCounter, int x, int z);
 	void Map::BuildPartialCube(std::vector<Vector3> vertices, std::map<std::string, RectangleF> uvs, int& vCounter, int& nCounter, int& tcCounter);
 	void Map::PlaceProp(PropType prop, Vector3 position);
 public:
-	static Map* Map::GetInstance();
+	Map::Map();
 
 	Vector3 Position() const { return _position; }
 	Image MapImg() const { return _imMap; }
 	Texture2D CubicMap() const { return _cubicMap; }
 	Color* MapPixels() const { return _pixels; }
 	std::vector<Prop*> Props() const { return props; }
-	void Map::Init();
+	void Map::Init(const char* mapFile, const char* cubemap);
 	void Map::Draw();
 	void Map::Reset();
 

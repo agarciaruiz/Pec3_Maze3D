@@ -1,14 +1,5 @@
 #include "map.h"
 
-Map* Map::_map = NULL;
-
-Map* Map::GetInstance()
-{
-    if (!_map)
-        _map = new Map();
-    return _map;
-}
-
 Map::Map(){}
 
 
@@ -286,18 +277,19 @@ void Map::PlaceProp(PropType prop, Vector3 position)
     }
 }
 
-void Map::Init()
+void Map::Init(const char* mapFile, const char* cubemap)
 {
-    _imMap = LoadImage("resources/map1.png");      // Load cubicmap image (RAM)
+    _imMap = LoadImage(mapFile);      // Load cubicmap image (RAM)
     _cubicMap = LoadTextureFromImage(_imMap);       // Convert image to texture to display (VRAM)
 
     Mesh mesh = GenMeshCubicmapV2(_imMap, Vector3{ 1.0f, 1.0f, 1.0f });
     _model = LoadModelFromMesh(mesh);
 
-    _texture = LoadTexture("resources/cubemap_atlas_full.png");    // Load map texture
+    _texture = LoadTexture(cubemap);    // Load map texture
     _model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = _texture;             // Set map diffuse texture
 
     _position = { 0.0f, 0.0f, 0.0f };  // Set model position
+    _completed = false;
 }
 
 void Map::Draw() 

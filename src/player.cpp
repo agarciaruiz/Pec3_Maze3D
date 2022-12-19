@@ -14,20 +14,20 @@ void Player::Move()
 void Player::CheckCollisions(Vector3 oldCamPos) 
 {
     _position = { _camera.position.x, _camera.position.z };
-    _tile = Vector2{ _position.x - map->Position().x + 0.5f, _position.y - map->Position().z + 0.5f };
+    _tile = Vector2{ _position.x - mapLoader->CurrentMap()->Position().x + 0.5f, _position.y - mapLoader->CurrentMap()->Position().z + 0.5f };
 
     if ((int)_tile.x < 0) _tile.x = 0;
-    else if ((int)_tile.x >= map->MapImg().width) _tile.x = map->MapImg().width - 1;
+    else if ((int)_tile.x >= mapLoader->CurrentMap()->MapImg().width) _tile.x = mapLoader->CurrentMap()->MapImg().width - 1;
 
     if ((int)_tile.y < 0) _tile.y = 0;
-    else if ((int)_tile.y >= map->MapImg().height) _tile.y = map->MapImg().height - 1;
+    else if ((int)_tile.y >= mapLoader->CurrentMap()->MapImg().height) _tile.y = mapLoader->CurrentMap()->MapImg().height - 1;
 
-    for (int y = 0; y < map->CubicMap().height; y++)
+    for (int y = 0; y < mapLoader->CurrentMap()->CubicMap().height; y++)
     {
-        for (int x = 0; x < map->CubicMap().width; x++)
+        for (int x = 0; x < mapLoader->CurrentMap()->CubicMap().width; x++)
         {
-            if ((map->MapPixels()[y * map->CubicMap().width + x].r == 255) &&       // Collision: white pixel, only check R channel
-                (CheckCollisionCircleRec(_position, _radius, Rectangle{ map->Position().x - 0.5f + x, map->Position().z - 0.5f + y, 1.0f, 1.0f })))
+            if ((mapLoader->CurrentMap()->MapPixels()[y * mapLoader->CurrentMap()->CubicMap().width + x].r == 255) &&       // Collision: white pixel, only check R channel
+                (CheckCollisionCircleRec(_position, _radius, Rectangle{ mapLoader->CurrentMap()->Position().x - 0.5f + x, mapLoader->CurrentMap()->Position().z - 0.5f + y, 1.0f, 1.0f })))
             {
                 // Collision detected, reset camera position
                 _camera.position = oldCamPos;
@@ -36,9 +36,9 @@ void Player::CheckCollisions(Vector3 oldCamPos)
     }
 }
 
-void Player::CheckCollisionsWithProps() 
+void Player::CheckCollisionsWithProps(Vector3 oldCamPos) 
 {
-    for(Prop* p : map->Props())
+    for(Prop* p : mapLoader->CurrentMap()->Props())
     {
         if(!p->isEmpty && CheckCollisionCircleRec(_position, _radius, Rectangle{ p->position.x, p->position.z, 1.0f, 1.0f }))
         {
@@ -47,6 +47,14 @@ void Player::CheckCollisionsWithProps()
                 printf("Collision!");
                 p->model.materials[0].maps[MATERIAL_MAP_DIFFUSE].color.a = 0;
                 p->isEmpty = true;
+                _hasKey = true;
+            }
+            else if (p->type == BRIDGE) 
+            {
+                if (!_hasKey) 
+                {
+                    _camera.position = oldCamPos;
+                }
             }
         }
     }
@@ -62,7 +70,7 @@ Player* Player::GetInstance()
 
 void Player::Init() 
 {
-    map = Map::GetInstance();
+    mapLoader = MapLoader::GetInstance();
     _soundManager = SoundManager::GetInstance();
 
     _camera.position = Vector3{ 5.0f, 0.5f, 1.0f };  // Camera position
@@ -74,10 +82,11 @@ void Player::Init()
 
     _position = Vector2{ _camera.position.x, _camera.position.z };
     _dir = Vector2{ 0, 0 };
-    _tile = Vector2{ _position.x - map->Position().x + 0.5f, _position.y - map->Position().z + 0.5f };
+    _tile = Vector2{ _position.x - mapLoader->CurrentMap()->Position().x + 0.5f, _position.y - mapLoader->CurrentMap()->Position().z + 0.5f};
     _radius = 0.1f;
     _moveSpeed = 2;
     _isDead = false;
+    _hasKey = false;
 }
 
 void Player::Update()
@@ -85,13 +94,13 @@ void Player::Update()
     Vector3 oldCamPos = _camera.position;
     UpdateCamera(&_camera);
     CheckCollisions(oldCamPos);
-    CheckCollisionsWithProps();
+    CheckCollisionsWithProps(oldCamPos);
 }
 
 void Player::Draw()
 {
     BeginMode3D(_camera);
-    map->Draw();
+    mapLoader->CurrentMap()->Draw();
     EndMode3D();
 }
 

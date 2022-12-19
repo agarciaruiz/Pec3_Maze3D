@@ -16,8 +16,8 @@ void GameManager::Init()
 {
 	gamePaused = false;
 
-	_map = Map::GetInstance();
-	_map->Init();
+	_mapLoader = MapLoader::GetInstance();
+	_mapLoader->LoadMap("resources/map1.png", "resources/cubemap_atlas_full.png");
 
 	_player = Player::GetInstance();
 	_player->Init();
@@ -57,5 +57,5 @@ void GameManager::DrawUI()
 void GameManager::Unload() 
 {
 	_player->Reset();
-	_map->Reset();
+	_mapLoader->CurrentMap()->Reset();
 }

@@ -2,6 +2,7 @@
 #define GAME_MANAGER_H
 #include <time.h>
 #include "raylib.h"
+#include "map_loader.h"
 #include "player.hpp"
 #include "sound_manager.h"
 
@@ -17,7 +18,7 @@ private:
 	Music _music;
 
 	// Player settings
-	Map* _map;
+	MapLoader* _mapLoader;
 	Player* _player;
 	SoundManager* _soundManager;
 	
