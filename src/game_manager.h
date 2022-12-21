@@ -26,8 +26,10 @@ private:
 	void GameManager::DrawUI();
 
 	int currentLevel;
+	bool updateLevel;
 
 public:
+	bool UpdateLevel() const { return updateLevel; }
 
 	static GameManager* GameManager::GetInstance();
 	void GameManager::Init();

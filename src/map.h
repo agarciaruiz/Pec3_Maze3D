@@ -37,7 +37,7 @@ private:
 	Vector3 _position;
 	bool _completed;
 
-	void Map::BuildFullCube(Image cubicmap, std::vector<Vector3> vertices, std::map<std::string, RectangleF> uvs, Color* pixels, int& vCounter, int& nCounter, int& tcCounter, int x, int z);
+	void Map::BuildFullCube(std::vector<Vector3> vertices, std::map<std::string, RectangleF> uvs, int& vCounter, int& nCounter, int& tcCounter, int x, int z);
 	void Map::BuildPartialCube(std::vector<Vector3> vertices, std::map<std::string, RectangleF> uvs, int& vCounter, int& nCounter, int& tcCounter);
 	void Map::PlaceProp(PropType prop, Vector3 position);
 public:
@@ -52,7 +52,7 @@ public:
 	void Map::Draw();
 	void Map::Reset();
 
-	Mesh Map::GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize);
+	Mesh Map::GenMeshCubicmapV2(Vector3 cubeSize);
 };
 
 #endif // !MAP_H

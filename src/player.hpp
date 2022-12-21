@@ -23,6 +23,7 @@ private:
     float _moveSpeed;
     bool _isDead;
     bool _hasKey;
+    bool _levelCompleted;
 
     SoundManager* _soundManager;
 
@@ -32,6 +33,7 @@ private:
     void Player::CheckCollisionsWithProps(Vector3 oldCamPos);
 
 public:
+    bool LevelCompleted() const { return _levelCompleted; }
 
     static Player* Player::GetInstance();
     void Player::Init();

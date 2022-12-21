@@ -199,6 +199,7 @@ static void UpdateDrawFrame()
                 gameScreen.Update();
 
                 if (gameScreen.FinishScreen() == 5) TransitionToScreen(ENDING);
+                if (gameScreen.FinishScreen() == 6) TransitionToScreen(LOADING);
 
             } break;
             case ENDING:

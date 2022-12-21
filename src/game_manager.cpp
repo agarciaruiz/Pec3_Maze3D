@@ -19,6 +19,7 @@ void GameManager::Init()
 
 	_mapLoader = MapLoader::GetInstance();
 
+	updateLevel = false;
 	currentLevel++;
 	switch (currentLevel) 
 	{
@@ -49,6 +50,9 @@ void GameManager::Update()
 	{
 		// PLAYER UPDATE
 		_player->Update();
+
+		if (_player->LevelCompleted())
+			updateLevel = true;
 	}
 }
 

@@ -15,6 +15,9 @@ void GameScreen::Update()
 	// Game end condition
 	/*if (_gameManager->GameEnded())
 			finishScreen = 5;*/
+
+	if (_gameManager->UpdateLevel())
+		finishScreen = 6;
 }
 
 void GameScreen::Draw()

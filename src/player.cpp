@@ -44,16 +44,22 @@ void Player::CheckCollisionsWithProps(Vector3 oldCamPos)
         {
             if (p->type == KEY) 
             {
-                printf("Collision!");
+                printf("Key collected!");
                 p->model.materials[0].maps[MATERIAL_MAP_DIFFUSE].color.a = 0;
                 p->isEmpty = true;
                 _hasKey = true;
             }
             else if (p->type == BRIDGE) 
             {
-                if (!_hasKey) 
+                if (!_hasKey)
                 {
+                    printf("Need a key to pass.");
                     _camera.position = oldCamPos;
+                }
+                else
+                {
+                    printf("Level completed!");
+                    _levelCompleted = true;
                 }
             }
         }
@@ -87,6 +93,7 @@ void Player::Init()
     _moveSpeed = 2;
     _isDead = false;
     _hasKey = false;
+    _levelCompleted = false;
 }
 
 void Player::Update()

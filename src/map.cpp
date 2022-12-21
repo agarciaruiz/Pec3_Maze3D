@@ -3,7 +3,7 @@
 Map::Map(){}
 
 
-void Map::BuildFullCube(Image cubicmap, std::vector<Vector3> vertices, std::map<std::string, RectangleF> uvs, Color* pixels, int& vCounter, int& nCounter, int& tcCounter, int x, int z)
+void Map::BuildFullCube(std::vector<Vector3> vertices, std::map<std::string, RectangleF> uvs, int& vCounter, int& nCounter, int& tcCounter, int x, int z)
 {
     // Define triangles and checking collateral cubes
     //------------------------------------------------
@@ -60,7 +60,7 @@ void Map::BuildFullCube(Image cubicmap, std::vector<Vector3> vertices, std::map<
     tcCounter += 6;
 
     // Checking cube on bottom of current cube
-    if (((z < cubicmap.height - 1) && COLOR_EQUAL(_pixels[(z + 1) * cubicmap.width + x], BLACK)) || (z == cubicmap.height - 1))
+    if (((z < _imMap.height - 1) && COLOR_EQUAL(_pixels[(z + 1) * _imMap.width + x], BLACK)) || (z == _imMap.height - 1))
     {
         // Define front triangles (2 tris, 6 vertex) --> vertices[1] vertices[6] vertices[2], vertices[2] vertices[6] vertices[7]
         // NOTE: Collateral occluded faces are not generated
@@ -90,7 +90,7 @@ void Map::BuildFullCube(Image cubicmap, std::vector<Vector3> vertices, std::map<
     }
 
     // Checking cube on top of current cube
-    if (((z > 0) && COLOR_EQUAL(_pixels[(z - 1) * cubicmap.width + x], BLACK)) || (z == 0))
+    if (((z > 0) && COLOR_EQUAL(_pixels[(z - 1) * _imMap.width + x], BLACK)) || (z == 0))
     {
         // Define back triangles (2 tris, 6 vertex) --> vertices[0] vertices[4] vertices[5], vertices[0] vertices[3] vertices[4]
         // NOTE: Collateral occluded faces are not generated
@@ -120,7 +120,7 @@ void Map::BuildFullCube(Image cubicmap, std::vector<Vector3> vertices, std::map<
     }
 
     // Checking cube on right of current cube
-    if (((x < cubicmap.width - 1) && COLOR_EQUAL(_pixels[z * cubicmap.width + (x + 1)], BLACK)) || (x == cubicmap.width - 1))
+    if (((x < _imMap.width - 1) && COLOR_EQUAL(_pixels[z * _imMap.width + (x + 1)], BLACK)) || (x == _imMap.width - 1))
     {
         // Define right triangles (2 tris, 6 vertex) --> vertices[2] vertices[7] vertices[3], vertices[3] vertices[7] vertices[4]
         // NOTE: Collateral occluded faces are not generated
@@ -150,7 +150,7 @@ void Map::BuildFullCube(Image cubicmap, std::vector<Vector3> vertices, std::map<
     }
 
     // Checking cube on left of current cube
-    if (((x > 0) && COLOR_EQUAL(_pixels[z * cubicmap.width + (x - 1)], BLACK)) || (x == 0))
+    if (((x > 0) && COLOR_EQUAL(_pixels[z * _imMap.width + (x - 1)], BLACK)) || (x == 0))
     {
         // Define left triangles (2 tris, 6 vertex) --> vertices[0] vertices[6] vertices[1], vertices[0] vertices[5] vertices[6]
         // NOTE: Collateral occluded faces are not generated
@@ -282,7 +282,7 @@ void Map::Init(const char* mapFile, const char* cubemap)
     _imMap = LoadImage(mapFile);      // Load cubicmap image (RAM)
     _cubicMap = LoadTextureFromImage(_imMap);       // Convert image to texture to display (VRAM)
 
-    Mesh mesh = GenMeshCubicmapV2(_imMap, Vector3{ 1.0f, 1.0f, 1.0f });
+    Mesh mesh = GenMeshCubicmapV2(Vector3{ 1.0f, 1.0f, 1.0f });
     _model = LoadModelFromMesh(mesh);
 
     _texture = LoadTexture(cubemap);    // Load map texture
@@ -305,24 +305,30 @@ void Map::Draw()
 
 void Map::Reset() 
 {
+    UnloadImageColors(_pixels);
     UnloadImage(_imMap);
     UnloadTexture(_cubicMap);        // Unload cubicmap texture
     UnloadTexture(_texture);         // Unload map texture
+    UnloadModel(_model);
+
+    props.clear();
+    normals.clear();
+    uvs.clear();
 }
 
 // Generate a cubes mesh from pixel data
 // NOTE: Vertex data is uploaded to GPU
-Mesh Map::GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
+Mesh Map::GenMeshCubicmapV2(Vector3 cubeSize)
 {
     Mesh mesh = { 0 };
 
-    _pixels = LoadImageColors(cubicmap);
+    _pixels = LoadImageColors(_imMap);
 
-    int mapWidth = cubicmap.width;
-    int mapHeight = cubicmap.height;
+    int mapWidth = _imMap.width;
+    int mapHeight = _imMap.height;
 
     // NOTE: Max possible number of triangles numCubes*(12 triangles by cube)
-    int maxTriangles = cubicmap.width * cubicmap.height * 12;
+    int maxTriangles = _imMap.width * _imMap.height * 12;
 
     int vCounter = 0;       // Used to count vertices
     int tcCounter = 0;      // Used to count texcoords
@@ -375,7 +381,7 @@ Mesh Map::GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
             vertices.push_back({ w * (x + 0.5f), 0, h * (z + 0.5f) });      // vertices[7]
 
             std::map<std::string, RectangleF> uv;
-            switch (_pixels[z * cubicmap.width + x].b)
+            switch (_pixels[z * _imMap.width + x].b)
             {
                 case 0:
                     uv = uvs[0];
@@ -392,19 +398,19 @@ Mesh Map::GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
             }
 
             // We check pixel color to be WHITE -> draw full cube
-            if (_pixels[z * cubicmap.width + x].r == 255)
+            if (_pixels[z * _imMap.width + x].r == 255)
             {
-                BuildFullCube(cubicmap, vertices, uv, _pixels, vCounter, nCounter, tcCounter, x, z);
+                BuildFullCube(vertices, uv, vCounter, nCounter, tcCounter, x, z);
             }
             // We check pixel color to be BLACK, we will only draw floor and roof
-            else if (_pixels[z * cubicmap.width + x].r == 0)
+            else if (_pixels[z * _imMap.width + x].r == 0)
             {
                 BuildPartialCube(vertices, uv, vCounter, nCounter, tcCounter);
             }
-            else if(_pixels[z * cubicmap.width + x].r == 128)
+            else if(_pixels[z * _imMap.width + x].r == 128)
             {
                 BuildPartialCube(vertices, uv, vCounter, nCounter, tcCounter);
-                switch(_pixels[z * cubicmap.width + x].g)
+                switch(_pixels[z * _imMap.width + x].g)
                 {
                     case 0:
                         break;
