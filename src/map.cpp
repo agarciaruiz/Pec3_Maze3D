@@ -9,7 +9,6 @@ void Map::BuildFullCube(std::vector<Vector3> vertices, std::map<std::string, Rec
     //------------------------------------------------
 
     // Define top triangles (2 tris, 6 vertex --> vertices[0]-vertices[1]-vertices[2], vertices[0]-vertices[2]-vertices[3])
-    // WARNING: Not required for a WHITE cubes, created to allow seeing the map from outside
     mapVertices[vCounter] = vertices[0];
     mapVertices[vCounter + 1] = vertices[1];
     mapVertices[vCounter + 2] = vertices[2];
@@ -60,7 +59,6 @@ void Map::BuildFullCube(std::vector<Vector3> vertices, std::map<std::string, Rec
     tcCounter += 6;
 
     // Define front triangles (2 tris, 6 vertex) --> vertices[1] vertices[6] vertices[2], vertices[2] vertices[6] vertices[7]
-    // NOTE: Collateral occluded faces are not generated
     mapVertices[vCounter] = vertices[1];
     mapVertices[vCounter + 1] = vertices[6];
     mapVertices[vCounter + 2] = vertices[2];
@@ -85,85 +83,81 @@ void Map::BuildFullCube(std::vector<Vector3> vertices, std::map<std::string, Rec
     mapTexcoords[tcCounter + 5] = Vector2{ uvs["front"].x + uvs["front"].width, uvs["front"].y + uvs["front"].height };
     tcCounter += 6;
 
-        // Define back triangles (2 tris, 6 vertex) --> vertices[0] vertices[4] vertices[5], vertices[0] vertices[3] vertices[4]
-        // NOTE: Collateral occluded faces are not generated
-        mapVertices[vCounter] = vertices[0];
-        mapVertices[vCounter + 1] = vertices[4];
-        mapVertices[vCounter + 2] = vertices[5];
-        mapVertices[vCounter + 3] = vertices[0];
-        mapVertices[vCounter + 4] = vertices[3];
-        mapVertices[vCounter + 5] = vertices[4];
-        vCounter += 6;
+    // Define back triangles (2 tris, 6 vertex) --> vertices[0] vertices[4] vertices[5], vertices[0] vertices[3] vertices[4]
+    mapVertices[vCounter] = vertices[0];
+    mapVertices[vCounter + 1] = vertices[4];
+    mapVertices[vCounter + 2] = vertices[5];
+    mapVertices[vCounter + 3] = vertices[0];
+    mapVertices[vCounter + 4] = vertices[3];
+    mapVertices[vCounter + 5] = vertices[4];
+    vCounter += 6;
 
-        mapNormals[nCounter] = normals[4];
-        mapNormals[nCounter + 1] = normals[4];
-        mapNormals[nCounter + 2] = normals[4];
-        mapNormals[nCounter + 3] = normals[4];
-        mapNormals[nCounter + 4] = normals[4];
-        mapNormals[nCounter + 5] = normals[4];
-        nCounter += 6;
+    mapNormals[nCounter] = normals[4];
+    mapNormals[nCounter + 1] = normals[4];
+    mapNormals[nCounter + 2] = normals[4];
+    mapNormals[nCounter + 3] = normals[4];
+    mapNormals[nCounter + 4] = normals[4];
+    mapNormals[nCounter + 5] = normals[4];
+    nCounter += 6;
 
-        mapTexcoords[tcCounter] = Vector2{ uvs["back"].x + uvs["back"].width, uvs["back"].y };
-        mapTexcoords[tcCounter + 1] = Vector2{ uvs["back"].x, uvs["back"].y + uvs["back"].height };
-        mapTexcoords[tcCounter + 2] = Vector2{ uvs["back"].x + uvs["back"].width, uvs["back"].y + uvs["back"].height };
-        mapTexcoords[tcCounter + 3] = Vector2{ uvs["back"].x + uvs["back"].width, uvs["back"].y };
-        mapTexcoords[tcCounter + 4] = Vector2{ uvs["back"].x, uvs["back"].y };
-        mapTexcoords[tcCounter + 5] = Vector2{ uvs["back"].x, uvs["back"].y + uvs["back"].height };
-        tcCounter += 6;
+    mapTexcoords[tcCounter] = Vector2{ uvs["back"].x + uvs["back"].width, uvs["back"].y };
+    mapTexcoords[tcCounter + 1] = Vector2{ uvs["back"].x, uvs["back"].y + uvs["back"].height };
+    mapTexcoords[tcCounter + 2] = Vector2{ uvs["back"].x + uvs["back"].width, uvs["back"].y + uvs["back"].height };
+    mapTexcoords[tcCounter + 3] = Vector2{ uvs["back"].x + uvs["back"].width, uvs["back"].y };
+    mapTexcoords[tcCounter + 4] = Vector2{ uvs["back"].x, uvs["back"].y };
+    mapTexcoords[tcCounter + 5] = Vector2{ uvs["back"].x, uvs["back"].y + uvs["back"].height };
+    tcCounter += 6;
     
 
-        // Define right triangles (2 tris, 6 vertex) --> vertices[2] vertices[7] vertices[3], vertices[3] vertices[7] vertices[4]
-        // NOTE: Collateral occluded faces are not generated
-        mapVertices[vCounter] = vertices[2];
-        mapVertices[vCounter + 1] = vertices[7];
-        mapVertices[vCounter + 2] = vertices[3];
-        mapVertices[vCounter + 3] = vertices[3];
-        mapVertices[vCounter + 4] = vertices[7];
-        mapVertices[vCounter + 5] = vertices[4];
-        vCounter += 6;
+    // Define right triangles (2 tris, 6 vertex) --> vertices[2] vertices[7] vertices[3], vertices[3] vertices[7] vertices[4]
+    mapVertices[vCounter] = vertices[2];
+    mapVertices[vCounter + 1] = vertices[7];
+    mapVertices[vCounter + 2] = vertices[3];
+    mapVertices[vCounter + 3] = vertices[3];
+    mapVertices[vCounter + 4] = vertices[7];
+    mapVertices[vCounter + 5] = vertices[4];
+    vCounter += 6;
 
-        mapNormals[nCounter] = normals[0];
-        mapNormals[nCounter + 1] = normals[0];
-        mapNormals[nCounter + 2] = normals[0];
-        mapNormals[nCounter + 3] = normals[0];
-        mapNormals[nCounter + 4] = normals[0];
-        mapNormals[nCounter + 5] = normals[0];
-        nCounter += 6;
+    mapNormals[nCounter] = normals[0];
+    mapNormals[nCounter + 1] = normals[0];
+    mapNormals[nCounter + 2] = normals[0];
+    mapNormals[nCounter + 3] = normals[0];
+    mapNormals[nCounter + 4] = normals[0];
+    mapNormals[nCounter + 5] = normals[0];
+    nCounter += 6;
 
-        mapTexcoords[tcCounter] = Vector2{ uvs["right"].x, uvs["right"].y };
-        mapTexcoords[tcCounter + 1] = Vector2{ uvs["right"].x, uvs["right"].y + uvs["right"].height };
-        mapTexcoords[tcCounter + 2] = Vector2{ uvs["right"].x + uvs["right"].width, uvs["right"].y };
-        mapTexcoords[tcCounter + 3] = Vector2{ uvs["right"].x + uvs["right"].width, uvs["right"].y };
-        mapTexcoords[tcCounter + 4] = Vector2{ uvs["right"].x, uvs["right"].y + uvs["right"].height };
-        mapTexcoords[tcCounter + 5] = Vector2{ uvs["right"].x + uvs["right"].width, uvs["right"].y + uvs["right"].height };
-        tcCounter += 6;
+    mapTexcoords[tcCounter] = Vector2{ uvs["right"].x, uvs["right"].y };
+    mapTexcoords[tcCounter + 1] = Vector2{ uvs["right"].x, uvs["right"].y + uvs["right"].height };
+    mapTexcoords[tcCounter + 2] = Vector2{ uvs["right"].x + uvs["right"].width, uvs["right"].y };
+    mapTexcoords[tcCounter + 3] = Vector2{ uvs["right"].x + uvs["right"].width, uvs["right"].y };
+    mapTexcoords[tcCounter + 4] = Vector2{ uvs["right"].x, uvs["right"].y + uvs["right"].height };
+    mapTexcoords[tcCounter + 5] = Vector2{ uvs["right"].x + uvs["right"].width, uvs["right"].y + uvs["right"].height };
+    tcCounter += 6;
     
-        // Define left triangles (2 tris, 6 vertex) --> vertices[0] vertices[6] vertices[1], vertices[0] vertices[5] vertices[6]
-        // NOTE: Collateral occluded faces are not generated
-        mapVertices[vCounter] = vertices[0];
-        mapVertices[vCounter + 1] = vertices[6];
-        mapVertices[vCounter + 2] = vertices[1];
-        mapVertices[vCounter + 3] = vertices[0];
-        mapVertices[vCounter + 4] = vertices[5];
-        mapVertices[vCounter + 5] = vertices[6];
-        vCounter += 6;
+    // Define left triangles (2 tris, 6 vertex) --> vertices[0] vertices[6] vertices[1], vertices[0] vertices[5] vertices[6]
+    mapVertices[vCounter] = vertices[0];
+    mapVertices[vCounter + 1] = vertices[6];
+    mapVertices[vCounter + 2] = vertices[1];
+    mapVertices[vCounter + 3] = vertices[0];
+    mapVertices[vCounter + 4] = vertices[5];
+    mapVertices[vCounter + 5] = vertices[6];
+    vCounter += 6;
 
-        mapNormals[nCounter] = normals[1];
-        mapNormals[nCounter + 1] = normals[1];
-        mapNormals[nCounter + 2] = normals[1];
-        mapNormals[nCounter + 3] = normals[1];
-        mapNormals[nCounter + 4] = normals[1];
-        mapNormals[nCounter + 5] = normals[1];
-        nCounter += 6;
+    mapNormals[nCounter] = normals[1];
+    mapNormals[nCounter + 1] = normals[1];
+    mapNormals[nCounter + 2] = normals[1];
+    mapNormals[nCounter + 3] = normals[1];
+    mapNormals[nCounter + 4] = normals[1];
+    mapNormals[nCounter + 5] = normals[1];
+    nCounter += 6;
 
-        mapTexcoords[tcCounter] = Vector2{ uvs["left"].x, uvs["left"].y };
-        mapTexcoords[tcCounter + 1] = Vector2{ uvs["left"].x + uvs["left"].width, uvs["left"].y + uvs["left"].height };
-        mapTexcoords[tcCounter + 2] = Vector2{ uvs["left"].x + uvs["left"].width, uvs["left"].y };
-        mapTexcoords[tcCounter + 3] = Vector2{ uvs["left"].x, uvs["left"].y };
-        mapTexcoords[tcCounter + 4] = Vector2{ uvs["left"].x, uvs["left"].y + uvs["left"].height };
-        mapTexcoords[tcCounter + 5] = Vector2{ uvs["left"].x + uvs["left"].width, uvs["left"].y + uvs["left"].height };
-        tcCounter += 6;
-    
+    mapTexcoords[tcCounter] = Vector2{ uvs["left"].x, uvs["left"].y };
+    mapTexcoords[tcCounter + 1] = Vector2{ uvs["left"].x + uvs["left"].width, uvs["left"].y + uvs["left"].height };
+    mapTexcoords[tcCounter + 2] = Vector2{ uvs["left"].x + uvs["left"].width, uvs["left"].y };
+    mapTexcoords[tcCounter + 3] = Vector2{ uvs["left"].x, uvs["left"].y };
+    mapTexcoords[tcCounter + 4] = Vector2{ uvs["left"].x, uvs["left"].y + uvs["left"].height };
+    mapTexcoords[tcCounter + 5] = Vector2{ uvs["left"].x + uvs["left"].width, uvs["left"].y + uvs["left"].height };
+    tcCounter += 6;
 }
 
 void Map::BuildPartialCube(std::vector<Vector3> vertices, std::map<std::string, RectangleF> uvs, int& vCounter, int& nCounter, int& tcCounter)

@@ -3,7 +3,7 @@
 GameManager* GameManager::_gameManager = NULL;
 
 
-GameManager::GameManager() : currentLevel{0}
+GameManager::GameManager() : currentLevel{1}
 {}
 
 GameManager* GameManager::GetInstance()
@@ -19,8 +19,8 @@ void GameManager::Init()
 
 	_mapLoader = MapLoader::GetInstance();
 
+	win = false;
 	updateLevel = false;
-	currentLevel++;
 	switch (currentLevel) 
 	{
 	case 1:
@@ -52,7 +52,12 @@ void GameManager::Update()
 		_player->Update();
 
 		if (_player->LevelCompleted())
+		{
 			updateLevel = true;
+			currentLevel++;
+			if (currentLevel > 3)
+				win = true;
+		}
 	}
 }
 
@@ -76,4 +81,9 @@ void GameManager::Unload()
 {
 	_player->Reset();
 	_mapLoader->CurrentMap()->Reset();
+}
+
+void GameManager::Reset()
+{
+	currentLevel = 1;
 }

@@ -13,10 +13,12 @@ void GameScreen::Update()
 {
 	_gameManager->Update();
 	// Game end condition
-	/*if (_gameManager->GameEnded())
-			finishScreen = 5;*/
-
-	if (_gameManager->UpdateLevel())
+	if (_gameManager->Win())
+	{
+		_gameManager->Reset();
+		finishScreen = 5;
+	}
+	else if (_gameManager->UpdateLevel() )
 		finishScreen = 6;
 }
 

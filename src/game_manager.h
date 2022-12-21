@@ -27,15 +27,18 @@ private:
 
 	int currentLevel;
 	bool updateLevel;
+	bool win;
 
 public:
 	bool UpdateLevel() const { return updateLevel; }
+	bool Win() const { return win; }
 
 	static GameManager* GameManager::GetInstance();
 	void GameManager::Init();
 	void GameManager::Update();
 	void GameManager::Draw();
 	void GameManager::Unload();
+	void GameManager::Reset();
 };
 
 #endif // !GAME_MANAGER_H
