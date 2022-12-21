@@ -5,7 +5,7 @@
 #define SCR_HEIGHT 800
 
 enum Screens { NONE, LOGO, TITLE, OPTIONS, GAMEPLAY, ENDING, LOADING };
-enum PropType { VOID, KEY, TURRET, BRIDGE };
+enum PropType { LAVA, KEY, TURRET, BRIDGE };
 
 typedef struct Prop {
 	Model model;

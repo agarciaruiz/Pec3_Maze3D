@@ -59,39 +59,32 @@ void Map::BuildFullCube(std::vector<Vector3> vertices, std::map<std::string, Rec
     mapTexcoords[tcCounter + 5] = Vector2{ uvs["bottom"].x, uvs["bottom"].y + uvs["bottom"].height };
     tcCounter += 6;
 
-    // Checking cube on bottom of current cube
-    if (((z < _imMap.height - 1) && COLOR_EQUAL(_pixels[(z + 1) * _imMap.width + x], BLACK)) || (z == _imMap.height - 1))
-    {
-        // Define front triangles (2 tris, 6 vertex) --> vertices[1] vertices[6] vertices[2], vertices[2] vertices[6] vertices[7]
-        // NOTE: Collateral occluded faces are not generated
-        mapVertices[vCounter] = vertices[1];
-        mapVertices[vCounter + 1] = vertices[6];
-        mapVertices[vCounter + 2] = vertices[2];
-        mapVertices[vCounter + 3] = vertices[2];
-        mapVertices[vCounter + 4] = vertices[6];
-        mapVertices[vCounter + 5] = vertices[7];
-        vCounter += 6;
+    // Define front triangles (2 tris, 6 vertex) --> vertices[1] vertices[6] vertices[2], vertices[2] vertices[6] vertices[7]
+    // NOTE: Collateral occluded faces are not generated
+    mapVertices[vCounter] = vertices[1];
+    mapVertices[vCounter + 1] = vertices[6];
+    mapVertices[vCounter + 2] = vertices[2];
+    mapVertices[vCounter + 3] = vertices[2];
+    mapVertices[vCounter + 4] = vertices[6];
+    mapVertices[vCounter + 5] = vertices[7];
+    vCounter += 6;
 
-        mapNormals[nCounter] = normals[5];
-        mapNormals[nCounter + 1] = normals[5];
-        mapNormals[nCounter + 2] = normals[5];
-        mapNormals[nCounter + 3] = normals[5];
-        mapNormals[nCounter + 4] = normals[5];
-        mapNormals[nCounter + 5] = normals[5];
-        nCounter += 6;
+    mapNormals[nCounter] = normals[5];
+    mapNormals[nCounter + 1] = normals[5];
+    mapNormals[nCounter + 2] = normals[5];
+    mapNormals[nCounter + 3] = normals[5];
+    mapNormals[nCounter + 4] = normals[5];
+    mapNormals[nCounter + 5] = normals[5];
+    nCounter += 6;
 
-        mapTexcoords[tcCounter] = Vector2{ uvs["front"].x, uvs["front"].y };
-        mapTexcoords[tcCounter + 1] = Vector2{ uvs["front"].x, uvs["front"].y + uvs["front"].height };
-        mapTexcoords[tcCounter + 2] = Vector2{ uvs["front"].x + uvs["front"].width, uvs["front"].y };
-        mapTexcoords[tcCounter + 3] = Vector2{ uvs["front"].x + uvs["front"].width, uvs["front"].y };
-        mapTexcoords[tcCounter + 4] = Vector2{ uvs["front"].x, uvs["front"].y + uvs["front"].height };
-        mapTexcoords[tcCounter + 5] = Vector2{ uvs["front"].x + uvs["front"].width, uvs["front"].y + uvs["front"].height };
-        tcCounter += 6;
-    }
+    mapTexcoords[tcCounter] = Vector2{ uvs["front"].x, uvs["front"].y };
+    mapTexcoords[tcCounter + 1] = Vector2{ uvs["front"].x, uvs["front"].y + uvs["front"].height };
+    mapTexcoords[tcCounter + 2] = Vector2{ uvs["front"].x + uvs["front"].width, uvs["front"].y };
+    mapTexcoords[tcCounter + 3] = Vector2{ uvs["front"].x + uvs["front"].width, uvs["front"].y };
+    mapTexcoords[tcCounter + 4] = Vector2{ uvs["front"].x, uvs["front"].y + uvs["front"].height };
+    mapTexcoords[tcCounter + 5] = Vector2{ uvs["front"].x + uvs["front"].width, uvs["front"].y + uvs["front"].height };
+    tcCounter += 6;
 
-    // Checking cube on top of current cube
-    if (((z > 0) && COLOR_EQUAL(_pixels[(z - 1) * _imMap.width + x], BLACK)) || (z == 0))
-    {
         // Define back triangles (2 tris, 6 vertex) --> vertices[0] vertices[4] vertices[5], vertices[0] vertices[3] vertices[4]
         // NOTE: Collateral occluded faces are not generated
         mapVertices[vCounter] = vertices[0];
@@ -117,11 +110,8 @@ void Map::BuildFullCube(std::vector<Vector3> vertices, std::map<std::string, Rec
         mapTexcoords[tcCounter + 4] = Vector2{ uvs["back"].x, uvs["back"].y };
         mapTexcoords[tcCounter + 5] = Vector2{ uvs["back"].x, uvs["back"].y + uvs["back"].height };
         tcCounter += 6;
-    }
+    
 
-    // Checking cube on right of current cube
-    if (((x < _imMap.width - 1) && COLOR_EQUAL(_pixels[z * _imMap.width + (x + 1)], BLACK)) || (x == _imMap.width - 1))
-    {
         // Define right triangles (2 tris, 6 vertex) --> vertices[2] vertices[7] vertices[3], vertices[3] vertices[7] vertices[4]
         // NOTE: Collateral occluded faces are not generated
         mapVertices[vCounter] = vertices[2];
@@ -147,11 +137,7 @@ void Map::BuildFullCube(std::vector<Vector3> vertices, std::map<std::string, Rec
         mapTexcoords[tcCounter + 4] = Vector2{ uvs["right"].x, uvs["right"].y + uvs["right"].height };
         mapTexcoords[tcCounter + 5] = Vector2{ uvs["right"].x + uvs["right"].width, uvs["right"].y + uvs["right"].height };
         tcCounter += 6;
-    }
-
-    // Checking cube on left of current cube
-    if (((x > 0) && COLOR_EQUAL(_pixels[z * _imMap.width + (x - 1)], BLACK)) || (x == 0))
-    {
+    
         // Define left triangles (2 tris, 6 vertex) --> vertices[0] vertices[6] vertices[1], vertices[0] vertices[5] vertices[6]
         // NOTE: Collateral occluded faces are not generated
         mapVertices[vCounter] = vertices[0];
@@ -177,7 +163,7 @@ void Map::BuildFullCube(std::vector<Vector3> vertices, std::map<std::string, Rec
         mapTexcoords[tcCounter + 4] = Vector2{ uvs["left"].x, uvs["left"].y + uvs["left"].height };
         mapTexcoords[tcCounter + 5] = Vector2{ uvs["left"].x + uvs["left"].width, uvs["left"].y + uvs["left"].height };
         tcCounter += 6;
-    }
+    
 }
 
 void Map::BuildPartialCube(std::vector<Vector3> vertices, std::map<std::string, RectangleF> uvs, int& vCounter, int& nCounter, int& tcCounter)
@@ -237,44 +223,41 @@ void Map::BuildPartialCube(std::vector<Vector3> vertices, std::map<std::string, 
 void Map::PlaceProp(PropType prop, Vector3 position)
 {
     Prop* p = new Prop();
+    Texture2D texture;
     switch (prop) 
     {
-        case VOID:
+        case LAVA:
+            p->size = 0.05f;
+            p->type = LAVA;
             break;
         case KEY:
             p->model = LoadModel("resources/models/obj/cube.obj");                 // Load model
-            Texture2D keyTexture = LoadTexture("resources/models/obj/cube_diffuse.png"); // Load model texture
-            p->model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = keyTexture;            // Set map diffuse texture
-            p->bb = GetMeshBoundingBox(p->model.meshes[0]);   // Set model bounds
-            p->position = position;
-            p->isEmpty = false;
+            texture = LoadTexture("resources/models/obj/cube_diffuse.png"); // Load model texture
             p->size = 0.02f;
             p->type = KEY;
-            props.push_back(p);
             break;
         case TURRET:
             p->model = LoadModel("resources/models/obj/turret.obj");                 // Load model
-            Texture2D turretTexture = LoadTexture("resources/models/obj/turret_diffuse.png"); // Load model texture
-            p->model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = turretTexture;            // Set map diffuse texture
-            p->bb = GetMeshBoundingBox(p->model.meshes[0]);   // Set model bounds
-            p->position = position;
-            p->isEmpty = false;
+            texture = LoadTexture("resources/models/obj/turret_diffuse.png"); // Load model texture
             p->size = 0.02f;
             p->type = TURRET;
-            props.push_back(p);
             break;
         case BRIDGE:
             p->model = LoadModel("resources/models/obj/bridge.obj");                 // Load model
-            Texture2D bridgeTexture = LoadTexture("resources/models/obj/bridge_diffuse.png"); // Load model texture
-            p->model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = bridgeTexture;            // Set map diffuse texture
-            p->bb = GetMeshBoundingBox(p->model.meshes[0]);   // Set model bounds
-            p->position = position;
-            p->isEmpty = false;
+            texture = LoadTexture("resources/models/obj/bridge_diffuse.png"); // Load model texture            
             p->size = 0.1;
             p->type = BRIDGE;
-            props.push_back(p);
             break;
     }
+
+    if(p->type != LAVA)
+    {
+        p->model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;            // Set map diffuse texture
+        p->bb = GetMeshBoundingBox(p->model.meshes[0]);   // Set model bounds
+    }
+    p->position = position;
+    p->isEmpty = false;
+    props.push_back(p);
 }
 
 void Map::Init(const char* mapFile, const char* cubemap)
@@ -413,6 +396,7 @@ Mesh Map::GenMeshCubicmapV2(Vector3 cubeSize)
                 switch(_pixels[z * _imMap.width + x].g)
                 {
                     case 0:
+                        PlaceProp(LAVA, { (float)x, 0, (float)z });
                         break;
                     case 1: // TURRET
                         PlaceProp(TURRET, { (float)x, 0, (float)z });
