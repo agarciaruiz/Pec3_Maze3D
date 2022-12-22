@@ -34,6 +34,8 @@ private:
 
 public:
     bool LevelCompleted() const { return _levelCompleted; }
+    bool IsDead() const { return _isDead; }
+    Camera3D Camera() const { return _camera; }
 
     static Player* Player::GetInstance();
     void Player::Init();

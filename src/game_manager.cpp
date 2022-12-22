@@ -20,7 +20,12 @@ void GameManager::Init()
 	_mapLoader = MapLoader::GetInstance();
 
 	win = false;
+	lost = false;
 	updateLevel = false;
+
+	_levelTimer = 0;
+	_levelTimeout = 60;
+
 	switch (currentLevel) 
 	{
 	case 1:
@@ -51,6 +56,12 @@ void GameManager::Update()
 		// PLAYER UPDATE
 		_player->Update();
 
+		_levelTimer += GetFrameTime();
+		if(_levelTimer >= _levelTimeout || _player->IsDead())
+		{
+			lost = true;
+		}
+
 		if (_player->LevelCompleted())
 		{
 			updateLevel = true;
@@ -63,11 +74,11 @@ void GameManager::Update()
 
 void GameManager::Draw()
 {
-	// UI DRAW
+	BeginMode3D(_player->Camera());
+	_mapLoader->CurrentMap()->Draw();
+	EndMode3D();
+
 	DrawUI();
-	
-	// PLAYER DRAW
-	_player->Draw();
 }
 
 void GameManager::DrawUI()
@@ -75,6 +86,8 @@ void GameManager::DrawUI()
 	// PAUSED GAME
 	if (gamePaused) DrawText("GAME PAUSED", SCR_WIDTH / 2 - MeasureText("GAME PAUSED", 40) / 2, SCR_HEIGHT / 2 + 60, 40, GRAY);
 
+	char* time = (char*)TextFormat("TIME: %is", ((int)_levelTimeout - (int)_levelTimer));
+	DrawText(time, 20, 20, 40, WHITE);
 }
 
 void GameManager::Unload() 

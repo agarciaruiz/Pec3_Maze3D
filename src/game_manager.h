@@ -28,10 +28,15 @@ private:
 	int currentLevel;
 	bool updateLevel;
 	bool win;
+	bool lost;
+
+	float _levelTimer;
+	float _levelTimeout;
 
 public:
 	bool UpdateLevel() const { return updateLevel; }
 	bool Win() const { return win; }
+	bool Lost() const { return lost; }
 
 	static GameManager* GameManager::GetInstance();
 	void GameManager::Init();

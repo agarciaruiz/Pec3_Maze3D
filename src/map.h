@@ -1,6 +1,5 @@
 #ifndef MAP_H
 #define MAP_H
-#define COLOR_EQUAL(col1, col2) ((col1.r == col2.r)&&(col1.g == col2.g)&&(col1.b == col2.b)&&(col1.a == col2.a))
 
 #include "raylib.h"
 #include "global.h"

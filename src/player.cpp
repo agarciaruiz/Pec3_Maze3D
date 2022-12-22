@@ -62,6 +62,10 @@ void Player::CheckCollisionsWithProps(Vector3 oldCamPos)
                     _levelCompleted = true;
                 }
             }
+            else if (p->type == PropType::LAVA) 
+            {
+                _isDead = true;
+            }
         }
     }
 }
@@ -104,13 +108,9 @@ void Player::Update()
     CheckCollisionsWithProps(oldCamPos);
 }
 
-void Player::Draw()
-{
-    BeginMode3D(_camera);
-    mapLoader->CurrentMap()->Draw();
-    EndMode3D();
-}
+void Player::Draw(){}
 
 void Player::Reset()
 {
+    _isDead = false;
 }
