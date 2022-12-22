@@ -42,14 +42,14 @@ void Player::CheckCollisionsWithProps(Vector3 oldCamPos)
     {
         if(!p->isEmpty && CheckCollisionCircleRec(_position, _radius, Rectangle{ p->position.x, p->position.z, 1.0f, 1.0f }))
         {
-            if (p->type == KEY) 
+            if (p->type == PropType::KEY) 
             {
                 printf("Key collected!");
                 p->model.materials[0].maps[MATERIAL_MAP_DIFFUSE].color.a = 0;
                 p->isEmpty = true;
                 _hasKey = true;
             }
-            else if (p->type == BRIDGE) 
+            else if (p->type == PropType::BRIDGE) 
             {
                 if (!_hasKey)
                 {

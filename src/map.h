@@ -9,6 +9,18 @@
 #include <map>
 #include <string>
 
+enum class PropType { LAVA, KEY, TURRET, BRIDGE };
+
+typedef struct Prop {
+	Model model;
+	Texture2D texture;
+	Vector3 position;
+	float size;
+	BoundingBox bb;
+	PropType type;
+	bool isEmpty;
+}Prop;
+
 class Map {
 private:
 	// NOTE: We use texture rectangles to define different textures for top-bottom-front-back-right-left (6)

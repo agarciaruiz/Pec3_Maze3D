@@ -220,33 +220,33 @@ void Map::PlaceProp(PropType prop, Vector3 position)
     Texture2D texture;
     switch (prop) 
     {
-        case LAVA:
+        case PropType::LAVA:
             p->size = 0.05f;
-            p->type = LAVA;
+            p->type = PropType::LAVA;
             break;
-        case KEY:
+        case PropType::KEY:
             p->model = LoadModel("resources/models/obj/cube.obj");                 // Load model
-            texture = LoadTexture("resources/models/obj/cube_diffuse.png"); // Load model texture
+            p->texture = LoadTexture("resources/models/obj/cube_diffuse.png"); // Load model texture
             p->size = 0.02f;
-            p->type = KEY;
+            p->type = PropType::KEY;
             break;
-        case TURRET:
+        case PropType::TURRET:
             p->model = LoadModel("resources/models/obj/turret.obj");                 // Load model
-            texture = LoadTexture("resources/models/obj/turret_diffuse.png"); // Load model texture
+            p->texture = LoadTexture("resources/models/obj/turret_diffuse.png"); // Load model texture
             p->size = 0.02f;
-            p->type = TURRET;
+            p->type = PropType::TURRET;
             break;
-        case BRIDGE:
+        case PropType::BRIDGE:
             p->model = LoadModel("resources/models/obj/bridge.obj");                 // Load model
-            texture = LoadTexture("resources/models/obj/bridge_diffuse.png"); // Load model texture            
+            p->texture = LoadTexture("resources/models/obj/bridge_diffuse.png"); // Load model texture            
             p->size = 0.1;
-            p->type = BRIDGE;
+            p->type = PropType::BRIDGE;
             break;
     }
 
-    if(p->type != LAVA)
+    if(p->type != PropType::LAVA)
     {
-        p->model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;            // Set map diffuse texture
+        p->model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = p->texture;            // Set map diffuse texture
         p->bb = GetMeshBoundingBox(p->model.meshes[0]);   // Set model bounds
     }
     p->position = position;
@@ -282,12 +282,19 @@ void Map::Draw()
 
 void Map::Reset() 
 {
-    UnloadImageColors(_pixels);
     UnloadImage(_imMap);
     UnloadTexture(_cubicMap);        // Unload cubicmap texture
     UnloadTexture(_texture);         // Unload map texture
     UnloadModel(_model);
+    UnloadImageColors(_pixels);
 
+    for(Prop* p : props)
+    {
+        UnloadTexture(p->texture);
+        UnloadModel(p->model);
+        delete p;
+        p = NULL;
+    }
     props.clear();
     normals.clear();
     uvs.clear();
@@ -390,16 +397,16 @@ Mesh Map::GenMeshCubicmapV2(Vector3 cubeSize)
                 switch(_pixels[z * _imMap.width + x].g)
                 {
                     case 0:
-                        PlaceProp(LAVA, { (float)x, 0, (float)z });
+                        PlaceProp(PropType::LAVA, { (float)x, 0, (float)z });
                         break;
                     case 1: // TURRET
-                        PlaceProp(TURRET, { (float)x, 0, (float)z });
+                        PlaceProp(PropType::TURRET, { (float)x, 0, (float)z });
                         break;
                     case 2: // KEY
-                        PlaceProp(KEY, { (float)x, 0, (float)z });
+                        PlaceProp(PropType::KEY, { (float)x, 0, (float)z });
                         break;
                     case 3: // BRIDGE
-                        PlaceProp(BRIDGE, { (float)x, 0, (float)z });
+                        PlaceProp(PropType::BRIDGE, { (float)x, 0, (float)z });
                         break;
                 }
             }
@@ -446,10 +453,15 @@ Mesh Map::GenMeshCubicmapV2(Vector3 cubeSize)
         mesh.texcoords[fCounter + 1] = mapTexcoords[i].y;
         fCounter += 2;
     }
-    
-    RL_FREE(mapVertices);
-    RL_FREE(mapNormals);
-    RL_FREE(mapTexcoords);
+
+    free(mapVertices);
+    mapVertices = NULL;
+
+    free(mapNormals);
+    mapNormals = NULL;
+
+    free(mapTexcoords);
+    mapTexcoords = NULL;
 
     // Upload vertex data to GPU (static mesh)
     UploadMesh(&mesh, false);

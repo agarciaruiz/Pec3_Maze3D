@@ -9,10 +9,12 @@ MapLoader* MapLoader::GetInstance()
     return _mapLoader;
 }
 
-MapLoader::MapLoader() {}
+MapLoader::MapLoader() 
+{
+    currentMap = new Map();
+}
 
 void MapLoader::LoadMap(const char* mapFile, const char* cubemap)
 {
-    currentMap = new Map();
     currentMap->Init(mapFile, cubemap);
 }
